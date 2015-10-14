@@ -1,0 +1,27 @@
+
+1.Assuming the XINU text begins at address 0x0, draw a rough diagram of XINU's memory layout with addresses derived from your experimental measurements. Include the information you uncovered from running your version of printsegaddress() and printprocstks().
+
+Text	Data	BSS	Heap	Free	Stack
+For printsegaddress(), the address of etext, edata, end is the first position of its next part respectively.
+It seems there always exits a null function named “prnull”, the higher the pprio number is the higher its priority is.
+
+
+2.What is the difference in stack top address before and after calling printtos()? Draw a diagram to illustrate what are the contents of the items pushed into the stack between these two time points.
+
+The top address of the stack before calling printtos () is 2bytes bigger than the after calling address.
+		|Retrun Address | Old Ebp |	
+Esp before f()	↑ 		          ↑Ebp
+
+
+3.Which byte order is adopted in the host machine that we are using? How did you find out? Briefly describe the mov, push, pusha, pop, and popa instructions in the x86.
+
+Left to Right : High to Low.  When I add an address for one, it binary format grows 4 from the right side.
+MOV: Copy the register content/constant value referred to by the second operand into the memory address/register referred to by the first operand. 
+PUSH: Move the value of the operand onto the top of the stack in memory. And forward the stack pointer. 
+PUSHA: Used to store the entire set of register values onto the top of the stack in memory. (AX, BX, CX, DX, SP, BP, SI, DI) 
+POP Remove the element on the top of the stack and store it in the memory location/register specified by the operand. POPA instruction: Used to remove the entire set of register values from the top of the stack in memory. (DI, SI, BP, SP, DX, CX, BX, AX)
+ 
+
+5.In a stack frame, local variables are stored below the top of the stack. In task 3, does your result show all the local variables declared in your printtos function? If not, can you explain that? (hint: try to disable the compiler optimization by specifing -O0 in your Makefile)
+	No, all the local variables declared are not shown because compiler optimization moves them somewhere else.
+
