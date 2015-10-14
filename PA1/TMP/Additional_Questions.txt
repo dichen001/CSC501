@@ -1,0 +1,5 @@
+What are the advantages and disadvantages of each of the two scheduling policies and the original scheduling policy in XINU?
+
+1.The advantage of LINUXLIKE scheduler is that it can prevent starvation caused by some always running processes with high priority, improve the response time and effieciency.  It is a balance between resopons time and turn around time.  While its disadvangement is its turn around time may not so good.
+
+2.For the MULTIQUEUE scheduler, its advantage is to differentiate processes acordding to their needs.  For the real-time processes it can acheive better response time.  But because most of the time, i.e. 70% here in our assignment, the normal process can not get the chance to run for the whole epoch, which will perform awful when their is a lot of real-time processes exist.  Under this situation, the normal processes, even with high priority has to wait for the whole epoch to start running. 
