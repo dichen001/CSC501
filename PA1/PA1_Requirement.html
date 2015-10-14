@@ -1,0 +1,229 @@
+
+<!-- saved from url=(0079)http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA1/pa1.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<title>PA1</title>
+<style type="text/css"></style><style type="text/css">#yddContainer{display:block;font-family:Microsoft YaHei;position:relative;width:100%;height:100%;top:-4px;left:-4px;font-size:12px;border:1px solid}#yddTop{display:block;height:22px}#yddTopBorderlr{display:block;position:static;height:17px;padding:2px 28px;line-height:17px;font-size:12px;color:#5079bb;font-weight:bold;border-style:none solid;border-width:1px}#yddTopBorderlr .ydd-sp{position:absolute;top:2px;height:0;overflow:hidden}.ydd-icon{left:5px;width:17px;padding:0px 0px 0px 0px;padding-top:17px;background-position:-16px -44px}.ydd-close{right:5px;width:16px;padding-top:16px;background-position:left -44px}#yddKeyTitle{float:left;text-decoration:none}#yddMiddle{display:block;margin-bottom:10px}.ydd-tabs{display:block;margin:5px 0;padding:0 5px;height:18px;border-bottom:1px solid}.ydd-tab{display:block;float:left;height:18px;margin:0 5px -1px 0;padding:0 4px;line-height:18px;border:1px solid;border-bottom:none}.ydd-trans-container{display:block;line-height:160%}.ydd-trans-container a{text-decoration:none;}#yddBottom{position:absolute;bottom:0;left:0;width:100%;height:22px;line-height:22px;overflow:hidden;background-position:left -22px}.ydd-padding010{padding:0 10px}#yddWrapper{color:#252525;z-index:10001;background:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ab20.png);}#yddContainer{background:#fff;border-color:#4b7598}#yddTopBorderlr{border-color:#f0f8fc}#yddWrapper .ydd-sp{background-image:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ydd-sprite.png)}#yddWrapper a,#yddWrapper a:hover,#yddWrapper a:visited{color:#50799b}#yddWrapper .ydd-tabs{color:#959595}.ydd-tabs,.ydd-tab{background:#fff;border-color:#d5e7f3}#yddBottom{color:#363636}#yddWrapper{min-width:250px;max-width:400px;}</style><style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+
+<body>
+<div align="center">
+<div align="left" style="font-family:Trebuchet MS;width: 700px;">
+<h2 align="center">CSC501 Fall 2015</h2>
+<h2 align="center">PA1: Process Scheduling</h2>
+<h2 align="center">Due: September 24 2015, 04:00 AM</h2>
+
+<h2>1. Objectives</h2>
+<p>The objectives of this lab are to get familiar with the concepts
+   of process management like process priorities, scheduling, and
+   context switching.
+</p>
+
+<h2>2. Readings</h2>
+<p>The XINU source code (in sys/), especially those related to
+   process creation (create.c), scheduling (resched.c, resume.c, and
+   suspend.c), termination (kill.c), priority change (chprio.c), as
+   well as other related utility programs (e.g., ready.c) and system
+   initialization code (initialize.c).
+</p>
+
+<h2>3. What to do</h2>
+<p>You will also be using the <tt>csc501-lab0.tgz</tt> you have
+   downloaded and compiled by following	the
+   <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA0/pa0.html">lab	setup guide</a>
+   in PA0,
+   but you need to rename the whole directory to csc501-lab1.
+</p>
+
+<p>In this lab you will implement two new scheduling policies that
+   will avoid <i>starvation</i>. At the end of this
+   lab you will be able to explain the advantages and disadvantages
+   of the two	new scheduling policies.
+</p>
+
+<p>The default scheduler in XINU will schedule the process with the highest priority.
+   Starvation occurs in XINU when there are two or more processes
+   eligible for execution that have different priorities. The higher
+   priority process gets to execute first which may result in lower
+   priority processes never getting any CPU time unless the higher
+   priority process ends.
+</p>
+
+<p>The two scheduling policies that you need to implement, as described below,
+   should address this problem. Note that for each of them, you need to
+   consider how to handle the <font face="Courier New">NULL</font> process,
+   so that the <font face="Courier New">NULL</font> process is
+   selected to run when and only when there are no other ready processes.
+</p>
+
+<p>For the Linux-like scheduling policy, a valid process priority value is an
+   integer between 0 to 99, where 99 is the highest priority.
+</p>
+
+<h3>1) Linux-like Scheduler (based loosely	on the 2.2 Linux kernel)</h3>
+<p>This scheduling algorithm tries to loosely emulate the Linux scheduler in 2.2 kernel.
+   In this assignment, we consider all the processes "conventional processes"
+   and uses the policies of the <font face="Courier New">SCHED_OTHER</font>
+   scheduling class within 2.2 kernel. With
+   this algorithm, the CPU time is divided into <i>epochs</i>. In each epoch, every
+   process has a specified time quantum, whose duration is computed at
+   the beginning of the epoch. An epoch will end when
+   all the <b>runnable</b> processes have used up their quantum. If a process has used
+   up its quantum, it will not be scheduled until the next epoch starts,
+   but a process can be selected many times during the epoch if it has
+   not used up its quantum.
+</p>
+
+<p>When a new epoch starts, the scheduler will recalculate the time
+   quantum of <b>all</b> processes (including blocked ones). This way, a
+   blocked process will start in the epoch when it becomes runnable
+   again. New processes created in the middle of an epoch will wait till
+   the next epoch. For a process that has never executed or has
+   exhausted its time quantum in the previous epoch, its new quantum
+   value is set to its process priority (i.e., <font face="Courier New">quantum = priority</font>). A
+   quantum of 10 allows a process to execute for 10 ticks (10 timer
+   interrupts) within an epoch. For a process that did not get to use up
+   its previously assigned quantum, we allow part of the unused quantum
+   to be carried over to the new epoch. Suppose for each process, a
+   variable <font face="Courier New">counter</font>
+   describes how many ticks are left from its quantum, then at the
+   beginning of the next epoch, <font face="Courier New">quantum = floor(counter/2) + priority</font>.
+   For example, a counter of 5 and a priority of 10 will produce a new quantum value of 12.
+	</p>
+
+<p>During each epoch, runnable processes are scheduled according to their <i>goodness</i>.
+   For processes that have used up their quantum, their goodness value
+   is 0. For other runnable processes, their goodness value is set
+   considering both their priority and the amount of quantum allocation	left:
+   <font face="Courier New">goodness = counter + priority</font>.
+   Again, round-robin is used among processes with equal goodness.
+</p>
+
+<p>The priority can be changed by explicitly specifying the priority of the	process during the
+   <font face="Courier New">create()</font> system
+   call or through the <font face="Courier New">chprio()</font> function.
+   Priority changes made in the middle of an epoch, however, will only
+   take effect in the next epoch.
+</p>
+
+<p>An example of how processes should be scheduled under this scheduler is as follows:</p>
+
+<p>If there are processes P1,P2,P3 with priority 10,20,15 then the epoch would be
+   equal to 10+20+15=45 and the possible schedule (with quantum duration
+   specified in the braces) can be: P2(20), P3(15),	P1(10), P2(20), P3(15), P1(10), but not: P2(20), P3(15), P2(20),
+	 P1(10).
+</p>
+
+<p>If you use <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA1/testmain.c">testmain.c</a> as your main.c program. You
+		are expected to get some results similar to the following:
+	<br>
+	<br>
+	<small><span style="font-style: italic;">
+	MCCCCCCCCCCCCCBBBBBBBMMACCCCCCCCCCCCBBBBBBBMMMA<br>
+	CCCCCCCCCCCCBBBBBBBMMMACCCCCCCCCCCCCBBBBBBBMMMB<br>
+	BBBBBBMMABBBBBBBMMMABBBBBBBMMMBMMMAMMAMMMMMMAMM<br>
+	MAMMMMMAMMMAMMMMMMAMMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	</span></small>
+	<br>
+</p>
+<h3>2) Multiqueue</h3>
+
+<p>This scheduler is similar to the scheduler in part 1, except that
+   it supports two queues: a Real-Time queue and a Normal queue. </p>
+
+<p>You need to add to XINU a modified version of the <font face="Courier New">create()</font>
+function; name the new function <font face="Courier New">createReal()</font>, which
+does the same work as <font face="Courier New">create()</font> does, except that the processes it creates are
+considered as Real-Time processes. Processes created by the original <font face="Courier New">create()</font>
+function are considered as Normal processes. Real-Time processes go into the
+Real-Time queue and Normal processes go into the normal queue. </p>
+
+<p>At the start of an epoch, the scheduler generates a random number
+to decide which queue to schedule in this epoch. It should ensure that in 70%
+time, the real-time queue is selected and in 30% time, the normal queue is
+selected. </p>
+
+<p>For processes in the Real-Time queue, the scheduling is round robin.
+Each process gets a 100-tick quantum. When all runnable processes run up their
+quantum, the epoch ends. </p>
+
+<p>For processes in the Normal queue, the scheduling algorithm is the
+same as in part 1. </p>
+
+<p>If a queue is selected but it contains no runnable processes, the scheduler
+automatically selects the other queue. Again, the <font face="Courier New">NULL</font> process is selected to run when and only when there are no other ready processes in both queues.</p>
+
+<p>Processes created by default (e.g., the master process) are Normal
+processes.</p>
+
+<h3>4. Other implementation details:</h3>
+1. <font face="Courier New">void setschedclass(int sched_class)</font>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;This function should change the scheduling type to
+		either of the supplied <font face="Courier New">LINUXSCHED</font> or <font face="Courier New">MULTIQSCHED</font>.<br>
+	<br>
+2. <font face="Courier New">int getschedclass()</font>
+	<br>&nbsp;&nbsp;&nbsp;&nbsp;This function should return the scheduling class
+		which should be either <font face="Courier New">LINUXSCHED</font> or <font face="Courier New">MULTIQSCHED</font>.<br>
+	<br>
+3. Each of the
+		scheduling class should be defined as constants<br>&nbsp;&nbsp;&nbsp;
+			<font face="Courier New">#define LINUXSCHED 1</font><br>&nbsp;&nbsp;&nbsp;
+			<font face="Courier New">#define MULTIQSCHED 2</font>
+	<br>
+	<br>
+4. Some of source
+		files of interest are: create.c, resched.c, resume.c, suspend.c,
+		ready.c, proc.h, kernel.h etc.
+	<br>
+
+<h3>5. Additional	Questions</h3>
+
+<p>Write your answers to the following questions in a file named
+   Lab1Answers.txt (in simple text). Please place this file in the sys/
+		directory and turn it in, along with the above programming assignment:</p>
+<p>What are the advantages and disadvantages of each of the two scheduling
+   policies and the original scheduling policy in XINU?
+</p>
+
+<h2>Turn-in Instructions</h2>
+	<p>Electronic turn-in instructions:</p>
+	<ol>
+		<li>go to the <tt>csc501-lab1/compile</tt> directory and do <tt>make
+				clean</tt>.
+		</li>
+		<li>create a subdirectory TMP (under the directory <tt>csc501-lab1</tt>)
+			and copy all the files you have modified/written, both .c files and
+			.h files into the directory.
+		</li>
+		<li>compress the <tt>csc501-lab1</tt> directory into a tgz file
+			and use Moodle's Submit Assignment facility. Please only upload one
+			tgz file.
+			<p>
+				<tt> tar czf csc501-lab1.tgz csc501-lab1</tt>
+			</p>
+		</li>
+	</ol>
+	<p>
+		For grading,  do not put any functionality in your own
+		<tt>main.c</tt>
+		file! ALL debugging output should be turned off before you submit your
+		code!
+	</p>
+	<a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/index.html">Back to the
+		CSC501 web page</a>
+
+
+
+</div></div></body></html>

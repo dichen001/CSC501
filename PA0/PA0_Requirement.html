@@ -1,0 +1,303 @@
+
+<!-- saved from url=(0079)http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA0/pa0.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<title>PA0</title>
+<style type="text/css"></style><style type="text/css">#yddContainer{display:block;font-family:Microsoft YaHei;position:relative;width:100%;height:100%;top:-4px;left:-4px;font-size:12px;border:1px solid}#yddTop{display:block;height:22px}#yddTopBorderlr{display:block;position:static;height:17px;padding:2px 28px;line-height:17px;font-size:12px;color:#5079bb;font-weight:bold;border-style:none solid;border-width:1px}#yddTopBorderlr .ydd-sp{position:absolute;top:2px;height:0;overflow:hidden}.ydd-icon{left:5px;width:17px;padding:0px 0px 0px 0px;padding-top:17px;background-position:-16px -44px}.ydd-close{right:5px;width:16px;padding-top:16px;background-position:left -44px}#yddKeyTitle{float:left;text-decoration:none}#yddMiddle{display:block;margin-bottom:10px}.ydd-tabs{display:block;margin:5px 0;padding:0 5px;height:18px;border-bottom:1px solid}.ydd-tab{display:block;float:left;height:18px;margin:0 5px -1px 0;padding:0 4px;line-height:18px;border:1px solid;border-bottom:none}.ydd-trans-container{display:block;line-height:160%}.ydd-trans-container a{text-decoration:none;}#yddBottom{position:absolute;bottom:0;left:0;width:100%;height:22px;line-height:22px;overflow:hidden;background-position:left -22px}.ydd-padding010{padding:0 10px}#yddWrapper{color:#252525;z-index:10001;background:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ab20.png);}#yddContainer{background:#fff;border-color:#4b7598}#yddTopBorderlr{border-color:#f0f8fc}#yddWrapper .ydd-sp{background-image:url(chrome-extension://eopjamdnofihpioajgfdikhhbobonhbb/ydd-sprite.png)}#yddWrapper a,#yddWrapper a:hover,#yddWrapper a:visited{color:#50799b}#yddWrapper .ydd-tabs{color:#959595}.ydd-tabs,.ydd-tab{background:#fff;border-color:#d5e7f3}#yddBottom{color:#363636}#yddWrapper{min-width:250px;max-width:400px;}</style><style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+
+<body>
+<div align="center">
+<div align="left" style="font-family:Trebuchet MS;width: 700px;">
+<h2 align="center">CSC501 Fall 2015</h2>
+<h2 align="center">PA 0: Getting Acquainted with XINU</h2>
+<h2 align="center">Due: September 3 2015, 4:00 AM</h2>
+
+
+
+<h2>1. Objectives</h2>
+<p>The objectives of this introductory lab are to familiarize you with the process of compiling and running XINU, 
+the tools involved, and the run-time environment and segment layout.
+</p>
+
+<h2>2. Lab setup guide</h2>
+XINU is a small Unix-like operating system originally 
+developed by Douglas Comer for instructional purposes at Purdue University. It is
+small enough so that we can understand it entirely within one semester.
+As part of lab assignment, we will re-implement or improve some apsects of XINU.
+<ol>
+<p></p><p>Step 1: Setting environment variables for lab assignments: 
+</p><ol>
+Get access to a customized VCL image -- <i>XINU (CSC501)</i> -- through the <a href="http://vcl.ncsu.edu/">VCL</a> facility 
+</ol>
+
+<p>Step 2: Add a new entry into your /etc/hosts
+</p><pre>	sudo sh -c "echo 127.0.0.1 `cs-status | head -1 | sed 's/://g'` &gt;&gt; /etc/hosts"
+</pre>
+<p></p>
+
+<p>Step 3: Start a backend server at local
+</p><pre>	sudo /bin/serial_server &amp;
+</pre>
+<p></p>
+
+<p>Step 4: Untar the XINU source files as follows:
+</p><ol>
+<li>
+Change to your home directory, if you are not already in it.</li>
+<br>
+<b>cd</b>
+<p>
+</p><li>
+
+Untar the XINU source by typing the following:</li>
+
+<br><b>wget http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA0/csc501-lab0.tgz</b><br>
+<b>tar xzvf csc501-lab0.tgz</b>
+<p>In your home directory, you will now have a directory named csc501-lab0.
+The subdirectories under this directory contain source code, header files,
+etc, for XINU. 
+NOTE: the tar file name may be different from the above depending on the lab you are working
+on. Please refer to the lab handouts for the location of the tar file for
+the current lab.
+</p></ol>
+
+
+<p>Step 5: Building XINU</p><p>
+
+</p><ol>
+To compile the XINU kernel which will be downloaded and run on the backend
+machines, run "make" in the compile directory as follows:
+<br>&nbsp;
+<pre><b>cd csc501-lab0/compile
+make depend
+make</b></pre>
+This creates an OS image called 'xinu.elf' that will then be uploaded and run on the backend
+machines.
+</ol>
+
+<p> Step 6: Running XINU
+</p><ol>
+The XINU code runs on backend machines. To see which of the backends are
+available for booting XINU, type:
+<br>&nbsp;
+<pre><b>cs-status</b></pre>
+This will show you who, if anyone, is logged onto each backend and how
+long they have been using it. To boot your copy of XINU on a backend, connect
+to a back-end by issuing the command:
+<pre><b>cs-console</b></pre>
+With no arguments cs-console will connect you to the first available backend.
+You may specify a backend by name (backend21 through backend100). Now download
+your copy of XINU by typing:
+<pre><b>(control-@) </b>OR <b>(control-spacebar)
+
+</b>// esc to local command-mode&nbsp;
+
+
+<b>(command-mode) ?&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+// show a list of supported commands &nbsp;
+
+
+<b>(command-mode) d</b>&nbsp;
+
+// download command&nbsp;
+
+
+<b>file: xinu.elf
+
+</b>// tell it to download 'xinu.elf' (assuming you are under csc501-lab0/compile)
+
+
+<b>(control-@)</b> OR <b>(control-spacebar)
+
+</b>// esc to local command-mode&nbsp;
+
+
+<b>(command-mode) p&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+// powercycle the backend &nbsp;
+
+
+XINU should boot with a "Hello World, Xinu lives!" message.
+
+</pre>
+Typing (control-@) will always bring you back to '(command mode)' prompt.
+From here, you can quit by typing <b>q</b>. 
+<br>&nbsp;
+
+<pre><b>(control-@) </b>OR <b>(control-spacebar)
+
+<b>(command-mode) q&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+// quit the backend &nbsp;
+</b></pre><b>
+
+</b>
+</ol>
+</ol>
+
+<h2>3. References</h2>
+<ol>
+<li>The Intel manuals (<a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/intel-vol1.pdf">Volume 1</a>, <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/intel-vol2.pdf">Volume 2</a>, <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/intel-vol3.pdf">Volume 3</a>).</li>
+<li>A brief <a href="http://www.delorie.com/djgpp/doc/ug/asm/about-386.html">guide on the 30386 architecture</a>.</li>
+<li>AT&amp;T assembly information specific to the gnu assembler is available <a href="http://en.wikibooks.org/wiki/X86_Assembly/GAS_Syntax">here</a> as a wikibook.</li>
+<li>Any man pages/manuals you discover that you need.</li>
+</ol>
+
+<p>Note: The Intel document is hundreds of pages long and there is no need to print it. Please do not print it!
+</p>
+
+<h2>4. What to do</h2>
+<p>
+You will be using the <tt>csc501-lab0.tgz</tt> you have downloaded and compiled by following the lab setup guide. And you are asked to write several XINU functions that perform the following tasks:</p>
+
+<ol>
+<li><b><tt>long zfunction(long param)</tt></b></li>
+<p> Clear the 20th to 27th bits (count the bits from left to right) of the
+    parameter "param" and shift it by 8 bits to the left, and then fill the
+    right most bits with 0. For example, the input parameter <tt>0xaabbccdd</tt>
+    should generate a return value of <tt>0xbbc00d00</tt>. You can assume that
+    the size of long is 4 bytes. The code for this function should be entirely
+    written in x86 assembly. You should not use inline assembly, (i.e., do not
+    use <tt>asm(...)</tt>). To investigate the assembly code generated by the
+    compiler, you can use the tool <tt>objdump -d &lt;___.o&gt;</tt> to
+    disassemble an object file.  The object files reside in the
+    <tt>/compile</tt> directory within the main Xinu directory. You can also see
+    some of the *.S files in the <tt>/sys</tt> directory for reference.</p>
+
+<li><b><tt>void printsegaddress()</tt></b></li>
+<p> Print the addresses indicating the end of the text, data, and BSS segments
+    of the Xinu OS. Also print the 4-byte contents (in hexadecimal) preceding
+    and after those addresses. This function can be written in C.</p>
+
+<li><b><tt>void printtos()</tt></b></li>
+<p> Print the address of the top of the run-time stack for whichever process you
+    are currently in, right before and right after you get into the
+    <tt>printtos()</tt> function call. In addition, print the contents of upto
+    six stack locations below the top of the stack (six or fewer items that
+    have been the most recently pushed, if any). Remember
+    that stack elements are 32 bits wide, and be careful to perform pointer
+    arithmetic correctly.  Also note that there are local variables and
+    arguments on the stack, among other things. See the hints given for #4
+    below, especially on stacktrace.c and proc.h. Your function can be written
+    entirely in C, or you can use in-line assembly if you prefer.</p>
+
+<li><b><tt>void printprocstks(int priority)</tt></b></li>
+<p> For each existing process with lower priority than the parameter, print the
+    stack base, stack size, stacklimit, and stack pointer. Also, for each
+    process, include the process name, the process id and the process
+    priority.</p>
+
+<p> To help you do this, please look into <tt>proc.h</tt> in the <tt>h/</tt>
+    directory.  Note the <tt>proctab[]</tt> array that holds all processes.
+    Also, note that the pesp member of the pentry structure holds the saved
+    stack pointer.  Therefore, the currently executing process has a stack
+    pointer that is different from the value of this variable.  In order to help
+    you get the  stack pointer of the currently executing process, carefully
+    study the <tt>stacktrace.c</tt> file in the <tt>sys/</tt> directory.  The
+    register <tt>%esp</tt> holds the current stack pointer.  You can use in-line
+    assembly(i.e., <tt>asm("...")</tt>) to do this part.</p>
+ 
+<li><b><tt>void printsyscalls()</tt></b></li>
+<p> Print the system calls which have been invoked for each process. This task
+    is loosely based on the functionality of
+    <a href="http://lttng.org/">LTTng </a>. There are 43 system calls declared.
+    Please look into <tt>kernel.h</tt> in the <tt>h/</tt> directory to see all
+    declared system calls. However, not all of them are implemented in this XINU
+    version. The implementation of the system calls are in the <tt>sys/</tt>
+    directory. You are asked to focus on the system calls in
+    <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA0/syscalls.txt">this list</a>. <br>
+    You are asked to print the frequency (how many times each system call is invoked) of the system calls in
+    <a href="http://people.engr.ncsu.edu/gjin2/Classes/501/Fall2015/assignments/PA0/syscalls.txt">the list</a> for each process. In order to do this, you will need to modify the implementation of the system calls  to trace them whenever they are invoked. <br>
+		You will also need to implement two other functions: <br>
+		<b><tt>void syscallsummary_start()</tt></b>: to start tracing the system calls. <br>
+		<b><tt>void syscallsummary_stop()</tt></b>: to stop tracing the system calls. <br>	
+		In other words, these two functions determine the duration in which the system calls are traced. <br>
+		</p>
+
+</ol>
+
+<p> Implement this lab as a set of functions that can be called from
+    <tt>main()</tt>.  Each function should reside in a separate file in the sys
+    directory, and should be incorporated into the Makefile.  The files should
+    be named after the functions they are implementing with C files having the
+    .c extension and the assembly files having the .S extension.  For example,
+    the file that will hold  <tt>void printsegaddress()</tt> should be named
+    <tt>printsegaddress.c</tt>; and the file that will hold
+    <tt>long zfunction(long param)</tt> should be named <tt>zfunction.S</tt>.
+    You should put <tt> syscallsummary_start, syscallsummary_stop </tt>
+    functions in the same file as <tt>printsyscalls</tt> function and
+    name it as <tt>printsyscalls.c</tt>. If you require a header file,
+    please name it <tt>lab0.h</tt>.  Note: as you create new files, you may need
+    to update the <tt>Makefile</tt> (located in the <tt>compile/</tt>directory)
+    to configure it to compile your files correctly. Just look at what is done
+    for the existing files (e.g., <tt>main.c</tt>) to see what you have to do.
+</p>
+
+<h2>5. Additional Questions</h2>
+ 
+ 
+<p>Write your answers to the following questions in a file named Lab0Answers.txt (in simple text).</p>
+<p>Please place this file in the sys/ directory and turn it in, along with the above programming assignment.</p>
+ 
+<ol>
+<li>Assuming the XINU text begins at address <tt>0x0</tt>, draw a rough diagram of XINU's memory layout with addresses derived from your experimental measurements.  Include the information you uncovered from running your version of <tt>printsegaddress()</tt> and <tt>printprocstks()</tt>.</li>
+<li>What is the difference in stack top address before and after calling <tt>printtos()</tt>? Draw a diagram to illustrate what are the contents of the items pushed into the stack between these two time points.</li>
+<li>Which byte order is adopted in the host machine that we are using? How did you find out?</li>
+<li>Briefly describe the <tt>mov, push, pusha, pop,</tt> and <tt>popa</tt> instructions in the x86.</li>
+<li>In a stack frame, local variables are stored below the top of the stack.  In task 3, does your result show all the local variables declared in your <b>printtos</b> function?  If not, can you explain that? (hint: try to disable the compiler optimization by specifing -O0 in your Makefile)</li>
+</ol>
+
+<h2>Turn-in Instructions</h2>
+<p>
+Electronic turn-in instructions:</p>
+
+<ol>
+    <li>make sure your output is intuitive and clean---simplifying Grader's grading is always good.</li>
+    <li>go to the <tt>csc501-lab0/compile</tt> directory and do <tt>make clean</tt>.</li>
+    <li>create a subdirectory TMP under the directory <tt>csc501-lab0</tt> and copy all the files you have modified/written, .S, .c, and .h files into the directory.
+</li>
+    <li>compress the <tt>csc501-lab0</tt> directory into a tgz file and use Moodle's Submit Assignment facility. Please only upload one tgz file.
+<p>
+<tt>               tar czf csc501-lab0.tgz csc501-lab0</tt>
+               </p>
+</li>
+    
+              
+</ol>
+
+
+<p>
+You can write code in main.c to test your procedures, but please note that when we test your programs we will replace the <tt>main.c</tt> file! Therefore, do not put any functionality in the <tt>main.c</tt> file.
+</p>
+<p>
+Also, ALL debugging output <b> MUST </b> be turned off before you submit your code.
+</p>
+
+<h2>Grading Policy</h2>
+<ul>
+  <li>(10%) Source code can be compiled and the generated image is bootable. Please note that you will also get 0 point for the second part if your source code can not be compiled or can not generate a bootable image.</li>
+  <li>(75%) Each task rewards 15 points (losing points on minor problems)</li>
+  <li>(15%) Each additional question earns 3 points</li>
+</ul>
+
+
+
+
+</div>
+</div>
+
+</body></html>
