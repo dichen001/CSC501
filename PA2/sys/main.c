@@ -4,6 +4,7 @@
 #include <kernel.h>
 #include <proc.h>
 #include <stdio.h>
+#include <paging.h>
 
 void halt();
 
@@ -13,6 +14,7 @@ void halt();
  */
 int main()
 {
-	kprintf("\n\nHello World, Xinu lives\n\n");
+
+
 	return 0;
 }

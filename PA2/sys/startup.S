@@ -82,7 +82,7 @@ entry:	.globl	entry
 
 	movl	$BRELOC,%esi    # Move from BRELOC to 
 	movl	$0,%edi		# to relocated area
-	movl	$330*1024,%ecx  # Size to Move (should be _edata)
+	movl	$300*1024,%ecx  # Size to Move (should be _edata)
 	cld
 	rep
 	movsb
@@ -139,7 +139,10 @@ gdt1:
 	movl	initsp,%esp	/* set new stack pointer base */
 	movl	%esp,%ebp
 
-	call	nulluser
+	movw	$0x28, %ax	/* set current task */
+	ltr	%ax
+	
+	call	nulluser	/* start xinu */
 	call	halt
 
 	.data
@@ -161,11 +164,11 @@ inw:	movl	4(%esp),%edx
 	inw	%dx,%ax
 	ret
 
-	.globl  inl
-inl:	movl	4(%esp),%edx
-	xorl	%eax,%eax
-	inl	%dx,%eax
-	ret
+        .globl  inl
+inl:    movl    4(%esp),%edx
+        xorl    %eax,%eax
+        inl     %dx,%eax
+        ret
 
 	.globl	outb
 outb:	movl	4(%esp),%edx
@@ -179,11 +182,11 @@ outw:	movl	4(%esp),%edx
 	outw	%ax,%dx
 	ret
 
-	.globl	outl
-outl:	movl	4(%esp),%edx
-	movl	8(%esp),%eax
-	outl	%eax,%dx
-	ret
+        .globl  outl
+outl:   movl    4(%esp),%edx
+        movl    8(%esp),%eax
+        outl    %eax,%dx
+        ret
 
 #ifndef SMALL
 	.globl	_rtcin
