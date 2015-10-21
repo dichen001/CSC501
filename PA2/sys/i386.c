@@ -46,7 +46,7 @@ struct tss i386_tasks[2] = {
    0,	/* esp2			*/
    0x18,/* ss2			*/
    0,	/* mbz			*/
-   0,	/* cr3 (PDBR)		*/
+   0,	/* cr3 (PDBR)		*/   /* ##### important ######## */
    0,	/* eip			*/
    0,	/* efl			*/
    0,	/* eax			*/

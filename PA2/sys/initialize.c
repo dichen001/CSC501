@@ -13,9 +13,9 @@
 #include <paging.h>
 
 /*#define DETAIL */
-#define HOLESIZE	(600)	
-#define	HOLESTART	(640 * 1024)
-#define	HOLEEND		((1024 + HOLESIZE) * 1024)  
+#define HOLESIZE	(600)						//600K = 150 pages
+#define	HOLESTART	(640 * 1024)				//page 160
+#define	HOLEEND		((1024 + HOLESIZE) * 1024)	//page (256+150)=406
 /* Extra 600 for bootp loading, and monitor */
 
 extern	int	main();	/* address of user's main prog	*/
@@ -23,6 +23,9 @@ extern	int	main();	/* address of user's main prog	*/
 extern	int	start();
 
 LOCAL		sysinit();
+
+/*  ######### for PA2 ########### */
+
 
 /* Declarations of major kernel variables */
 struct	pentry	proctab[NPROC]; /* process table			*/
