@@ -4,14 +4,27 @@
 #include <proc.h>
 #include <paging.h>
 
+fr_map_t frm_tab[NFRAMES];
 /*-------------------------------------------------------------------------
  * init_frm - initialize frm_tab
  *-------------------------------------------------------------------------
  */
 SYSCALL init_frm()
 {
-  kprintf("To be implemented!\n");
-  return OK;
+	kprintf("initialize frame \n");
+	for (int i = 0; i < NFRAMES; ++i)
+	{
+		frm_tab[i].fr_status = UNMAPPED;
+		frm_tab[i].fr_pid = -1;
+		frm_tab[i].fr_vpno = -1;
+		frm_tab[i].fr_refcnt = 0;
+		frm_tab[i].fr_type = -1;
+		frm_tab[i].fr_dirty = 0;
+		frm_tab[i].cookie = NULL;
+		frm_tab[i].fr_loadtime = 0;
+	}
+	kprintf("frame initialized \n");
+	return OK;
 }
 
 /*-------------------------------------------------------------------------

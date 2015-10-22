@@ -43,6 +43,9 @@ typedef struct{
 } virt_addr_t;
 
 typedef struct{
+  int mapping_num;    /* how many mappings on this bs */
+  int private;        /* whether the other process can map or not */
+
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
   int bs_vpno;				/* starting virtual page number */
@@ -79,7 +82,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define NFRAMES   1024	/* number of frames for PA2 */
 #define NBS       16    /* number of backing store */ 
 
-
+#define BSM_PRIVATE   1
+#define BSM_NOTPRIVATE   0
 #define BSM_UNMAPPED	0
 #define BSM_MAPPED	1
 
@@ -93,7 +97,7 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define FIFO		3
 #define GCM		4
 
-#define MAX_ID          9              /* You get 10 mappings, 0 - 9 */
+#define MAX_ID          15              /* You get 16 mappings, 0 - 15 */
 
 //Modified for PA2 
 #define BACKING_STORE_BASE	0x00800000         //starting from 2048th page 2^(11+12) = 2^23

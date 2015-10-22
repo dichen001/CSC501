@@ -5,12 +5,26 @@
 #include <paging.h>
 #include <proc.h>
 
+bs_map_t bsm_tab[NBS];
+
 /*-------------------------------------------------------------------------
  * init_bsm- initialize bsm_tab
  *-------------------------------------------------------------------------
  */
 SYSCALL init_bsm()
-{
+{	kprintf("initialize backing store \n");
+	for (int i = 0; i < NBS; ++i)
+	{
+		bsm_tab[i].mapping_num = 0;
+		bsm_tab[i].private = BSM_NOTPRIVATE;
+		bsm_tab[i].bs_status = UNMAPPED;
+		bsm_tab[i].bs_pid = -1;
+		bsm_tab[i].bs_vpno = -1;
+		bsm_tab[i].bs_npages =	-1;
+		bsm_tab[i].bs_sem =	-1;
+	}
+	kprintf("backing store initialized \n");
+	return OK;
 }
 
 /*-------------------------------------------------------------------------
