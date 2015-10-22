@@ -133,17 +133,19 @@ setsegs()
 	struct sd	*psd;
 	unsigned int	np, npages, lostk, limit;
 
-	npages = sizmem();
+	npages = sizmem();	//sizmem() just return 4096 in this version.
 /*
 	maxaddr = (char *)(npages * NBPG - 1);
 */
-	maxaddr = (char *)( 1024 * NBPG - 1); /* 4M size */
+	// This maxaddr is for kernal, totally we have 16 M memory. 
+	maxaddr = (char *)( 1024 * NBPG - 1); /* 4M size */  //first 4M for kernal
 				 	      /* the top 8M is used for backing store, the next 4M is free frames. */
 
 	psd = &gdt_copy[1];	/* kernel code segment */
 	np = ((int)&etext + NBPG-1) / NBPG;	/* # code pages */
 	psd->sd_lolimit = np;
 	psd->sd_hilimit = np >> 16;
+
 #if 0
 	psd = &gdt_copy[2];	/* kernel data segment */
 	psd->sd_lolimit = npages;

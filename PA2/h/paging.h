@@ -1,6 +1,6 @@
 /* paging.h */
 
-typedef unsigned int	 bsd_t;
+typedef unsigned int	 bsd_t; //The backing store descriptor type is used to refer to a backing store.
 
 /* Structure for a page directory entry */
 
@@ -74,12 +74,11 @@ SYSCALL release_bs(bsd_t);
 SYSCALL read_bs(char *, bsd_t, int);
 SYSCALL write_bs(char *, bsd_t, int);
 
-#define NBPG		4096	/* number of bytes per page	*/
-#define FRAME0		1024	/* zero-th frame		*/
+#define NBPG      4096  /* number of bytes per page	*/
+#define FRAME0    1024	/* page id of the zero-th frame		*/
+#define NFRAMES   1024	/* number of frames for PA2 */
+#define NBS       16    /* number of backing store */ 
 
-//default 3072 frames --> 1024+3072=4096=16M
-//#define NFRAMES 	3072	/* number of frames		*/
-#define NFRAMES 	8	/* number of frames		*/
 
 #define BSM_UNMAPPED	0
 #define BSM_MAPPED	1
@@ -96,5 +95,6 @@ SYSCALL write_bs(char *, bsd_t, int);
 
 #define MAX_ID          9              /* You get 10 mappings, 0 - 9 */
 
-#define BACKING_STORE_BASE	0x00600000
-#define BACKING_STORE_UNIT_SIZE 0x00100000
+//Modified for PA2 
+#define BACKING_STORE_BASE	0x00800000         //starting from 2048th page 2^(11+12) = 2^23
+#define BACKING_STORE_UNIT_SIZE 0x00080000    //128 pages = 128*4k = 2^(7+12) = 2^19

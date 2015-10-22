@@ -24,9 +24,6 @@ extern	int	start();
 
 LOCAL		sysinit();
 
-/*  ######### for PA2 ########### */
-
-
 /* Declarations of major kernel variables */
 struct	pentry	proctab[NPROC]; /* process table			*/
 int	nextproc;		/* next process slot to use in create	*/
