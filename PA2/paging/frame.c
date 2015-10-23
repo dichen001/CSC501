@@ -33,8 +33,15 @@ SYSCALL init_frm()
  */
 SYSCALL get_frm(int* avail)
 {
-  kprintf("To be implemented!\n");
-  return OK;
+	for (int i = 0; i < NFRAMES; ++i)
+	{
+		if (frm_tab[i].fr_status == UNMAPPED)
+		{
+			kprintf("Frame[%d] got!\n",i);
+			return OK;
+		}
+		// replacement wait for coding
+	}
 }
 
 /*-------------------------------------------------------------------------
@@ -43,8 +50,16 @@ SYSCALL get_frm(int* avail)
  */
 SYSCALL free_frm(int i)
 {
+	frm_tab[i].fr_status = UNMAPPED;
+	frm_tab[i].fr_pid = -1;
+	frm_tab[i].fr_vpno = -1;
+	frm_tab[i].fr_refcnt = 0;
+	frm_tab[i].fr_type = -1;
+	frm_tab[i].fr_dirty = 0;
+	frm_tab[i].cookie = NULL;
+	frm_tab[i].fr_loadtime = 0;
 
-  kprintf("To be implemented!\n");
+  kprintf("Frame[%d] freed\n",i);
   return OK;
 }
 

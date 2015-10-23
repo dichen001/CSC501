@@ -33,6 +33,13 @@ SYSCALL init_bsm()
  */
 SYSCALL get_bsm(int* avail)
 {
+	for (int i = 0; i < NBS; ++i)
+	{
+		if(bsm_tab[i].bs_status == UNMAPPED){
+			kprintf("get bsmtab[%d] \n",i);
+			return OK;
+		}			
+	}
 }
 
 
@@ -42,6 +49,15 @@ SYSCALL get_bsm(int* avail)
  */
 SYSCALL free_bsm(int i)
 {
+	kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
+	bsm_tab[i].mapping_num = 0;
+	bsm_tab[i].private = BSM_NOTPRIVATE;
+	bsm_tab[i].bs_status = UNMAPPED;
+	bsm_tab[i].bs_pid = -1;
+	bsm_tab[i].bs_vpno = -1;
+	bsm_tab[i].bs_npages =	-1;
+	bsm_tab[i].bs_sem =	-1;
+	kprintf("free_bsm(%d) completed\n", i);
 }
 
 /*-------------------------------------------------------------------------
