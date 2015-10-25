@@ -8,15 +8,36 @@
 bs_map_t bsm_tab[NBS];
 
 /*-------------------------------------------------------------------------
- * init_bsm- initialize bsm_tab
+ * init_bsm- initialize backing store map table
  *-------------------------------------------------------------------------
  */
 SYSCALL init_bsm()
-{	kprintf("initialize backing store \n");
+{	kprintf("initialize backing store map table\n");
 	int i;
 	for (i = 0; i < NBS; ++i)
 	{
 		bsm_tab[i].mapping_num = 0;
+		bsm_tab[i].private = BSM_NOTPRIVATE;
+		bsm_tab[i].bs_status = BSM_UNMAPPED;
+		bsm_tab[i].bs_pid = -1;
+		bsm_tab[i].bs_vpno = -1;
+		bsm_tab[i].bs_npages =	-1;
+		bsm_tab[i].bs_sem =	-1;
+	}
+	kprintf("backing store map table initialized \n");
+	return OK;
+}
+
+/*-------------------------------------------------------------------------
+ * update_bsm- update the bsm when process[pid] map a backing store.
+ *-------------------------------------------------------------------------
+ */
+SYSCALL update_bsm(int pid, int type)
+{	kprintf("initialize backing store map table for process %s \n",proctab[pid].pname);
+	int i;
+	for (i = 0; i < NBS; ++i)
+	{
+		bsm_tab[i].mapping_num = 1;
 		bsm_tab[i].private = BSM_NOTPRIVATE;
 		bsm_tab[i].bs_status = BSM_UNMAPPED;
 		bsm_tab[i].bs_pid = -1;
@@ -41,6 +62,8 @@ SYSCALL get_bsm()
 			return OK;
 		}			
 	}
+	kprintf("bsmtab[] is full \n");
+	return -1;
 }
 
 

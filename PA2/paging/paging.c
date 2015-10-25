@@ -6,8 +6,8 @@
 /**
  * initialize the 4 globle_page_table first.
  */
-int gpd[4];		//global page table.
-SYSCALL init_gpd(){
+int gpt[4];		//global page table.
+SYSCALL init_gpt(){
 	kprintf("start initializing globle_page_table\n");
 	int i;
 	for (i = 0; i < 4; ++i)
@@ -15,7 +15,7 @@ SYSCALL init_gpd(){
 		int avail = get_frm();	//get the id of a new frame from frm_tab[];
 		//initialize frame[avail], update the process_id and frame_type of this frame.
 		init_frm(avail, NULLPROC, FR_TBL);	
-		gpd[i] = avail;
+		gpt[i] = avail;
 
 		pt_t *new_pt = frid2pa(avail);
 		int j;
@@ -62,7 +62,10 @@ SYSCALL create_PD(int pid){
 		{
 			new_pd[i].pd_pres = 1;
 			new_pd[i].pd_global = 1;
-			new_pd[i].pd_base = gdb[i];	//map the 4 global page tables.
+			new_pd[i].pd_base = gpt[i];	//map the 4 global page tables.
 		}
 	}
+	proctab[pid].pdbr = frid2pa(avail); //record the page_directory_base_register for this process.
+	kprintf("page directory for process: %s created\n",proctab[pid].pname);
 }
+

@@ -66,6 +66,12 @@ typedef struct{
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
+/* use some needed function here */
+extern void eable_paging();
+extern void set_PDBR(int pid);
+
+
+
 /* Prototypes for required API calls */
 SYSCALL xmmap(int virtpage, bsd_t source, int npages);
 SYSCALL xmunmap(int virtpage );
@@ -90,7 +96,7 @@ SYSCALL read_bs(char *, bsd_t, int);
 SYSCALL write_bs(char *, bsd_t, int);
 
 /* given calls for dealing with backing store */
-SYSCALL init_gpd();
+SYSCALL init_gpt();
 
 
 #define NBPG      4096  /* number of bytes per page	*/

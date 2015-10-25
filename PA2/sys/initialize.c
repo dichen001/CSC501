@@ -188,11 +188,7 @@ sysinit()
 	/* initialize 1. backing stores 2.free frames 3.set page fault handler */
 	init_bsm();
 	init_frm_tab();
-	init_gpd();
-	/* may be later for page fault handler? */
-	set_evec(14,pfintr);	//14 indicates "page faults", pfintr is for pfintr.S
-	kprintf("install the page fault interrupt handler\n");
-
+	init_gpt();
 
 	/* initialize null process entry */
 	pptr = &proctab[NULLPROC];	
@@ -219,7 +215,16 @@ sysinit()
 
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */
 
-
+	/* allocate and initialize a page directory fo rthe NULL process. */
+	create_PD(NULLPROC);	
+	/* Set the PDBR register to the page directory for the NULL process */
+	set_PDBR(NULLPROC);
+	/* Install the page fault interrupt handler */
+	set_evec(14,pfintr);	//14 indicates "page faults", pfintr is for pfintr.S
+	kprintf("page fault interrupt handler installed\n");
+	/* Enable paging */
+	enable_paging();
+	kprintf("paging enabled\n");
 
 	return(OK);
 }

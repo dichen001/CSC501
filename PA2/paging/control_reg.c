@@ -3,6 +3,7 @@
 
 #include <conf.h>
 #include <kernel.h>
+#include <proc.h>
 
 unsigned long tmp;
 
@@ -181,10 +182,23 @@ void write_cr4(unsigned long n) {
  *-------------------------------------------------------------------------
  */
 void enable_paging(){
-  
   unsigned long temp =  read_cr0();
   temp = temp | ( 0x1 << 31 ) | 0x1;
+  kprintf("before enable paging\n");
   write_cr0(temp); 
+  kprintf("paging enabled\n");
 }
 
+
+
+/*-------------------------------------------------------------------------
+ * set_PDBR - set the page table base register.
+ *-------------------------------------------------------------------------
+ */
+void set_PDBR(int pid){
+  kprintf("**proctab[pid].pdbr = %x \n",proctab[pid].pdbr);
+  unsigned long pdbr = proctab[pid].pdbr;
+  write_cr3(pdbr);
+  kprintf("PDBR set to the base register of process %s \n", proctab[pid].pname);
+}
 
