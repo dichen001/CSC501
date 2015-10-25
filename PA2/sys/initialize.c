@@ -224,7 +224,6 @@ sysinit()
 	kprintf("page fault interrupt handler installed\n");
 	/* Enable paging */
 	enable_paging();
-	kprintf("paging enabled\n");
 
 	return(OK);
 }
