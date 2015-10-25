@@ -67,20 +67,36 @@ typedef struct{
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
 /* Prototypes for required API calls */
-SYSCALL xmmap(int, bsd_t, int);
-SYSCALL xunmap(int);
+SYSCALL xmmap(int virtpage, bsd_t source, int npages);
+SYSCALL xmunmap(int virtpage );
+
+/* given calls for dealing with frames */
+SYSCALL init_frm_tab();
+int get_frm();
+SYSCALL init_frm(int i, int pid, int type);
+SYSCALL free_frm(int i);
+
 
 /* given calls for dealing with backing store */
+SYSCALL init_bsm();
+SYSCALL get_bsm();
+SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth);
+SYSCALL bsm_map(int pid, int vpno, int source, int npages);
+SYSCALL bsm_unmap(int pid, int vpno, int flag);
 
-int get_bs(bsd_t, unsigned int);
-SYSCALL release_bs(bsd_t);
+int get_bs(bsd_t bs_id, unsigned int npages);
+SYSCALL release_bs(bsd_t bs_id);
 SYSCALL read_bs(char *, bsd_t, int);
 SYSCALL write_bs(char *, bsd_t, int);
+
+/* given calls for dealing with backing store */
+SYSCALL init_gpd();
+
 
 #define NBPG      4096  /* number of bytes per page	*/
 #define FRAME0    1024	/* page id of the zero-th frame		*/
 #define NFRAMES   1024	/* number of frames for PA2 */
-#define NBS       16    /* number of backing store */ 
+#define NBS       16    /* number of backing store */
 
 #define BSM_PRIVATE   1
 #define BSM_NOTPRIVATE   0
@@ -102,3 +118,8 @@ SYSCALL write_bs(char *, bsd_t, int);
 //Modified for PA2 
 #define BACKING_STORE_BASE	0x00800000         //starting from 2048th page 2^(11+12) = 2^23
 #define BACKING_STORE_UNIT_SIZE 0x00080000    //128 pages = 128*4k = 2^(7+12) = 2^19
+
+
+#define frid2vpno(i)  (FRAME0 + i)    //frame id to virtual page number
+#define frid2pa(i)    ((FRAME0 + i)*NBPG)      //frame id to physical address
+

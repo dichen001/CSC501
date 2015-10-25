@@ -132,10 +132,8 @@ sysinit()
 	struct	pentry	*pptr;
 	struct	sentry	*sptr;
 	struct	mblock	*mptr;
-	SYSCALL pfintr();
-
 	
-
+	SYSCALL pfintr();		// initialize page fault handler here.
 	numproc = 0;			/* initialize system variables */
 	nextproc = NPROC-1;
 	nextsem = NSEM-1;
@@ -186,7 +184,18 @@ sysinit()
 	}
 #endif
 
-	pptr = &proctab[NULLPROC];	/* initialize null process entry */
+
+	/* initialize 1. backing stores 2.free frames 3.set page fault handler */
+	init_bsm();
+	init_frm_tab();
+	init_gpd();
+	/* may be later for page fault handler? */
+	set_evec(14,pfintr);	//14 indicates "page faults", pfintr is for pfintr.S
+	kprintf("install the page fault interrupt handler\n");
+
+
+	/* initialize null process entry */
+	pptr = &proctab[NULLPROC];	
 	pptr->pstate = PRCURR;
 	for (j=0; j<7; j++)
 		pptr->pname[j] = "prnull"[j];
@@ -209,6 +218,7 @@ sysinit()
 	}
 
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */
+
 
 
 	return(OK);

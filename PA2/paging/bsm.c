@@ -13,11 +13,12 @@ bs_map_t bsm_tab[NBS];
  */
 SYSCALL init_bsm()
 {	kprintf("initialize backing store \n");
-	for (int i = 0; i < NBS; ++i)
+	int i;
+	for (i = 0; i < NBS; ++i)
 	{
 		bsm_tab[i].mapping_num = 0;
 		bsm_tab[i].private = BSM_NOTPRIVATE;
-		bsm_tab[i].bs_status = UNMAPPED;
+		bsm_tab[i].bs_status = BSM_UNMAPPED;
 		bsm_tab[i].bs_pid = -1;
 		bsm_tab[i].bs_vpno = -1;
 		bsm_tab[i].bs_npages =	-1;
@@ -31,11 +32,11 @@ SYSCALL init_bsm()
  * get_bsm - get a free entry from bsm_tab 
  *-------------------------------------------------------------------------
  */
-SYSCALL get_bsm(int* avail)
-{
-	for (int i = 0; i < NBS; ++i)
+SYSCALL get_bsm()
+{	int i;
+	for (i = 0; i < NBS; ++i)
 	{
-		if(bsm_tab[i].bs_status == UNMAPPED){
+		if(bsm_tab[i].bs_status == BSM_UNMAPPED){
 			kprintf("get bsmtab[%d] \n",i);
 			return OK;
 		}			
@@ -52,7 +53,7 @@ SYSCALL free_bsm(int i)
 	kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
 	bsm_tab[i].mapping_num = 0;
 	bsm_tab[i].private = BSM_NOTPRIVATE;
-	bsm_tab[i].bs_status = UNMAPPED;
+	bsm_tab[i].bs_status = BSM_UNMAPPED;
 	bsm_tab[i].bs_pid = -1;
 	bsm_tab[i].bs_vpno = -1;
 	bsm_tab[i].bs_npages =	-1;

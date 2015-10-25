@@ -6,17 +6,18 @@
 
 fr_map_t frm_tab[NFRAMES];
 /*-------------------------------------------------------------------------
- * init_frm - initialize frm_tab
+ * init_frm_tab - initialize frm_tab
  *-------------------------------------------------------------------------
  */
-SYSCALL init_frm()
+SYSCALL init_frm_tab()
 {
 	kprintf("initialize frame \n");
-	for (int i = 0; i < NFRAMES; ++i)
+	int i;
+	for (i = 0; i < NFRAMES; ++i)
 	{
-		frm_tab[i].fr_status = UNMAPPED;
+		frm_tab[i].fr_status = FRM_UNMAPPED;
 		frm_tab[i].fr_pid = -1;
-		frm_tab[i].fr_vpno = -1;
+		frm_tab[i].fr_vpno = frid2vpno(i);
 		frm_tab[i].fr_refcnt = 0;
 		frm_tab[i].fr_type = -1;
 		frm_tab[i].fr_dirty = 0;
@@ -31,18 +32,35 @@ SYSCALL init_frm()
  * get_frm - get a free frame according page replacement policy
  *-------------------------------------------------------------------------
  */
-SYSCALL get_frm(int* avail)
-{
-	for (int i = 0; i < NFRAMES; ++i)
+int get_frm()
+{	int i;
+	for (i = 0; i < NFRAMES; ++i)
 	{
-		if (frm_tab[i].fr_status == UNMAPPED)
+		if (frm_tab[i].fr_status == FRM_UNMAPPED)
 		{
 			kprintf("Frame[%d] got!\n",i);
-			return OK;
+			return i;
 		}
-		// replacement wait for coding
 	}
+	kprintf("No Frame left!\n");
+	return -1;
 }
+
+
+/*-------------------------------------------------------------------------
+ * init_frm - initialize a frame after get_frm
+ *-------------------------------------------------------------------------
+ */
+SYSCALL init_frm(int i, int pid, int type){
+	frm_tab[i].fr_status = FRM_MAPPED;	// ** will here be wrong? ** //
+	frm_tab[i].fr_pid = pid;
+	frm_tab[i].fr_vpno = frid2vpno(i);
+	frm_tab[i].fr_refcnt += 1;
+	frm_tab[i].fr_type = type;
+	frm_tab[i].fr_dirty = 0; 
+	return OK;
+}
+
 
 /*-------------------------------------------------------------------------
  * free_frm - free a frame 
@@ -50,7 +68,7 @@ SYSCALL get_frm(int* avail)
  */
 SYSCALL free_frm(int i)
 {
-	frm_tab[i].fr_status = UNMAPPED;
+	frm_tab[i].fr_status = FRM_UNMAPPED;
 	frm_tab[i].fr_pid = -1;
 	frm_tab[i].fr_vpno = -1;
 	frm_tab[i].fr_refcnt = 0;
