@@ -96,6 +96,11 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	*--saddr = 0;		/* %edi */
 	*pushsp = pptr->pesp = (unsigned long)saddr;
 
+
+	/* for demand paging */
+	create_PD(pid);	//demand-paging related value has already been assigned inside.
+	 
+
 	restore(ps);
 
 	return(pid);

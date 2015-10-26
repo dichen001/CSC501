@@ -8,7 +8,7 @@
  */
 int gpt[4];		//global page table.
 SYSCALL init_gpt(){
-	kprintf("\n\nstart initializing globle_page_table\n");
+	kprintf("\n\nstart initializing Globle Page Table\n");
 	int i;
 	for (i = 0; i < 4; ++i)
 	{
@@ -32,14 +32,14 @@ SYSCALL init_gpt(){
 			new_pt[j].pt_avail = 0; // not in use right now.
 			new_pt[j].pt_base = i*1024 + j;	//map page 0-4095, i.e. the first 16M of physical memory.
 		}
-		kprintf("PT_base_Address: %8x   PT_Value: new_pt[0] = %8x\n",new_pt,new_pt[0]);
+		kprintf("PT Base Address: %8x   PT_Value: new_pt[0] = %8x\n",new_pt,new_pt[0]);
 	}
-	kprintf("globle_page_table initialized \n");
+	kprintf("Globle Page Table initialized \n");
 	return OK;
 }
 
 SYSCALL create_PD(int pid){
-	kprintf("\n\ncreating page directory for process: %s \n",proctab[pid].pname);
+	kprintf("\n\ncreating Page Directory for process: %s \n",proctab[pid].pname);
 	int avail = get_frm();	//get the id of a new frame from frm_tab[];
 	//initialize frame[avail], update the process_id and frame_type of this frame.
 	init_frm(avail, pid, FR_DIR);
@@ -66,8 +66,13 @@ SYSCALL create_PD(int pid){
 			kprintf("PD_base_Address: %8x  Value(PDE): new_pd[%d] = %8x\n",new_pd,i,new_pd[i]);
 		}
 	}
+	// initialize the demand-paging related value for this newly created process. 
 	proctab[pid].pdbr = new_pd; //record the page_directory_base_register for this process.
+	proctab[pid].store = -1;
+	proctab[pid].vhpno = -1;
+	proctab[pid].vhpnpages = -1;
+	proctab[pid].vmemlist = NULL;
 
-	kprintf("page directory for process: %s created\n",proctab[pid].pname);
+	kprintf("new Page Directory for process: %s created\n",proctab[pid].pname);
 }
 

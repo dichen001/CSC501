@@ -15,6 +15,8 @@ void halt();
 int main()
 {
 
-
+	kprintf("\nRuning main() \n\n");
+	int i = 0;
+	kprintf("&i = %8x, i = %d\n",&i,i);
 	return 0;
 }
