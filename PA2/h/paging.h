@@ -103,6 +103,7 @@ SYSCALL init_gpt();
 #define FRAME0    1024	/* page id of the zero-th frame		*/
 #define NFRAMES   1024	/* number of frames for PA2 */
 #define NBS       16    /* number of backing store */
+#define NBSPG     256   /* number of backing store pages*/
 
 #define BSM_PRIVATE   1
 #define BSM_NOTPRIVATE   0

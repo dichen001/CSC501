@@ -27,9 +27,25 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	int	nargs;			/* number of args that follow	*/
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
-{
-	kprintf("To be implemented!\n");
-	return OK;
+{	
+	/*
+	if(hsize > NBSPG){
+		kprintf("hsieze should be smaller than 256.\n");
+		return SYSERR;
+	}
+	*/
+	STATWORD ps;
+	disable(ps);
+	
+	int pid = create(procaddr, ssize, priority, name, nargs, args); //set stack as private is optional
+	
+	/* for virtual address mapping */
+	int store = get_bsm();
+	update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
+	
+
+	restore(ps);
+	return pid;
 }
 
 /*------------------------------------------------------------------------

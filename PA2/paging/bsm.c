@@ -29,23 +29,37 @@ SYSCALL init_bsm()
 }
 
 /*-------------------------------------------------------------------------
- * update_bsm- update the bsm when process[pid] map a backing store.
+ * update_bsm- update the mapping of backing store from proces's vpage.
  *-------------------------------------------------------------------------
  */
-SYSCALL update_bsm(int pid, int type)
-{	kprintf("initialize backing store map table for process %s \n",proctab[pid].pname);
-	int i;
-	for (i = 0; i < NBS; ++i)
-	{
-		bsm_tab[i].mapping_num = 1;
-		bsm_tab[i].private = BSM_NOTPRIVATE;
-		bsm_tab[i].bs_status = BSM_UNMAPPED;
-		bsm_tab[i].bs_pid = -1;
-		bsm_tab[i].bs_vpno = -1;
-		bsm_tab[i].bs_npages =	-1;
-		bsm_tab[i].bs_sem =	-1;
+SYSCALL update_bsm( int pid, int type, int vhpno, int npages, int store )
+{	kprintf("update backing store map table {pid: %d(%s), vpage: %d, store: %d, npages: %d }\n",
+										pid, proctab[pid].pname, vhpno, store, npages);
+	if(bsm_tab[store].private == BSM_PRIVATE){
+		kprintf("!!! This bs is private, cannot be remapped. !!!\n");
+		return SYSERR;
 	}
-	kprintf("backing store initialized \n");
+	bsm_tab[store].mapping_num += 1;
+	bsm_tab[store].private = type;
+	bsm_tab[store].bs_status = BSM_MAPPED;
+	bsm_tab[store].bs_pid = pid;
+	bsm_tab[store].bs_vpno = vhpno;
+	bsm_tab[store].bs_npages =	npages;
+	//bsm_tab[store].bs_sem =	-1;
+	
+	proctab[pid].store = store;
+	proctab[pid].vhpno = vhpno;
+	proctab[pid].vhpnpages = npages;
+	/**
+	 * ****************************************************************************************************************************************************
+	 * 	stopped here....  To be continue for coding vreate.c 
+	 * ****************************************************************************************************************************************************
+	 */
+	proctab[pid].vmemlist = NULL;	
+	proctab[pid].vmemlist = getmem(sizeof(struct mblock));
+	proctab[pid].vmemlist -> mlen = npages * NBPG;
+	proctab[pid].vmemlist -> mnext = NULL;	
+	kprintf("Backing_Store[%d] mapping updated\n",store);
 	return OK;
 }
 
@@ -58,8 +72,8 @@ SYSCALL get_bsm()
 	for (i = 0; i < NBS; ++i)
 	{
 		if(bsm_tab[i].bs_status == BSM_UNMAPPED){
-			kprintf("get bsmtab[%d] \n",i);
-			return OK;
+			kprintf("Backing_Store[%d] got\n",i);
+			return i;
 		}			
 	}
 	kprintf("bsmtab[] is full \n");
