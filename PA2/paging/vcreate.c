@@ -43,7 +43,6 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	int store = get_bsm();
 	update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
 	
-
 	restore(ps);
 	return pid;
 }

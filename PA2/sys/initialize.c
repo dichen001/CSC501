@@ -142,16 +142,20 @@ sysinit()
 	/* initialize free memory list */
 	/* PC version has to pre-allocate 640K-1024K "hole" */
 	if (maxaddr+1 > HOLESTART) {
+		kprintf("\n\n####### DBG: show the initialization of memlist #######\n");
+		kprintf("&memlist=%8x \t &end=%8x \t mptr=roundmb(&end)=%8x \n",&memlist, &end, roundmb(&end));
 		memlist.mnext = mptr = (struct mblock *) roundmb(&end);
-		mptr->mnext = (struct mblock *)HOLEEND;
-		mptr->mlen = (int) truncew(((unsigned) HOLESTART -
-	     		 (unsigned)&end));
+		mptr->mnext = (struct mblock *)HOLEEND;					//#define HOLEEND //page (256+150)=406  // 150 pages
+		mptr->mlen = (int) truncew(((unsigned) HOLESTART -		//#define HOLESTART	(640*1024) // 160 page 
+	     		 (unsigned)&end));				
         mptr->mlen -= 4;
+        kprintf("mptr=%8x \t mptr->mnext=%8x \t mptr->mlen=%8x \n",mptr, mptr->mnext, mptr->mlen);
 
 		mptr = (struct mblock *) HOLEEND;
 		mptr->mnext = 0;
 		mptr->mlen = (int) truncew((unsigned)maxaddr - HOLEEND -
 	      		NULLSTK);
+		kprintf("mptr=%8x \t mptr->mnext=%8x \t mptr->mlen=%8x \n",mptr, mptr->mnext, mptr->mlen);
 /*
 		mptr->mlen = (int) truncew((unsigned)maxaddr - (4096 - 1024 ) *  4096 - HOLEEND - NULLSTK);
 */

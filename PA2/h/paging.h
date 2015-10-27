@@ -128,5 +128,5 @@ SYSCALL init_gpt();
 
 
 #define frid2vpno(i)  (FRAME0 + i)    //frame id to virtual page number
-#define frid2pa(i)    ((FRAME0 + i)*NBPG)      //frame id to physical address
-
+#define frid2pa(i)    ( (FRAME0 + i)*NBPG )      //frame id to physical address
+#define bsid2pa(i)    ( (2048+i*128)*NBPG )

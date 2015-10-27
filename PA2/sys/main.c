@@ -17,6 +17,7 @@ void proc1_test2() {
 	kprintf("\nRuning proc1_test2() \n\n");
 	int i = 0;
 	kprintf("&i = %8x, i = %d\n",&i,i);
+	i = vgetmem(1000);
 /*
   int *x;
 
@@ -41,6 +42,5 @@ int main()
 	int pid1;
 	pid1 = vcreate(proc1_test2, 2000, 100, 20, "proc1_test2", 0, NULL);
 	resume(pid1);
-	sleep(10);
 	return 0;
 }

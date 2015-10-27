@@ -27,7 +27,7 @@ SYSCALL init_bsm()
 	kprintf("backing store map table initialized \n");
 	return OK;
 }
-
+ 
 /*-------------------------------------------------------------------------
  * update_bsm- update the mapping of backing store from proces's vpage.
  *-------------------------------------------------------------------------
@@ -50,16 +50,14 @@ SYSCALL update_bsm( int pid, int type, int vhpno, int npages, int store )
 	proctab[pid].store = store;
 	proctab[pid].vhpno = vhpno;
 	proctab[pid].vhpnpages = npages;
-	/**
-	 * ****************************************************************************************************************************************************
-	 * 	stopped here....  To be continue for coding vreate.c 
-	 * ****************************************************************************************************************************************************
-	 */
-	proctab[pid].vmemlist = NULL;	
-	proctab[pid].vmemlist = getmem(sizeof(struct mblock));
-	proctab[pid].vmemlist -> mlen = npages * NBPG;
-	proctab[pid].vmemlist -> mnext = NULL;	
+	//initialize the virtual memory list, and map it to the according backing store.
+	struct	mblock	*mptr;
+	kprintf("if don't use getmem() here, it will probably go wrong.\n");
+	proctab[pid].vmemlist->mnext = mptr = (struct mblock *) roundmb(bsid2pa(store));
+	mptr->mnext = 0;
+	mptr->mlen = npages * NBPG;		//attention, this is in bytes.
 	kprintf("Backing_Store[%d] mapping updated\n",store);
+	kprintf("vmemlist->mnext mapping to bs[%d] @ %x, length is %d\n",store,bsid2pa(store), npages);
 	return OK;
 }
 
