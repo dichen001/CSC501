@@ -2,6 +2,7 @@
 
 #include <conf.h>
 #include <kernel.h>
+#include <mem.h>
 #include <proc.h>
 #include <stdio.h>
 #include <paging.h>
@@ -10,14 +11,41 @@ void halt();
 
 /*------------------------------------------------------------------------
  *  main  --  user main program
- *------------------------------------------------------------------------
+ *-----------------------------------
+ *-------------------------------------
  */
 
 void proc1_test2() {
 	kprintf("\nRuning proc1_test2() \n\n");
 	int i = 0;
 	kprintf("&i = %8x, i = %d\n",&i,i);
-	i = vgetmem(1000);
+	
+	struct	mblock	*x;
+	kprintf("************************************\n");
+	x = vgetmem(1000);
+	x= (struct	mblock *)x;
+	kprintf("x=%8x \t x->mnext=%8x \t x->mlen=%d\n",
+			x,x->mnext,x->mlen);
+	kprintf("####################################\n");
+	vfreemem(x,1000);
+	kprintf("\n freemem(x,1000); \n\n");
+
+	kprintf("************************************\n");
+	x = vgetmem(1000);
+	kprintf("####################################\n");
+	vfreemem(x,500);
+	kprintf("\n freemem(x,500); \n\n");
+	
+	kprintf("************************************\n");
+	x = vgetmem(1000);
+	kprintf("####################################\n");
+	vfreemem(x+500,500);
+	kprintf("\n freemem(x+500,500); \n\n");
+
+	kprintf("************************************\n");
+	x = get_bs(4, 100); 
+	kprintf("####################################\n");
+	release_bs(4);
 /*
   int *x;
 

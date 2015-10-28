@@ -11,7 +11,8 @@
  */
 SYSCALL	freemem(struct mblock *block, unsigned size)
 {
-	STATWORD ps;    
+	STATWORD ps;
+	disable(ps);    
 	struct	mblock	*p, *q;
 	unsigned top;
 
@@ -19,7 +20,7 @@ SYSCALL	freemem(struct mblock *block, unsigned size)
 	    || ((unsigned)block)<((unsigned) &end))
 		return(SYSERR);
 	size = (unsigned)roundmb(size);
-	disable(ps);
+	//disable(ps);
 	for( p=memlist.mnext,q= &memlist;
 	     p != (struct mblock *) NULL && p < block ;
 	     q=p,p=p->mnext )

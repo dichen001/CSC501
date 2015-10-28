@@ -35,13 +35,25 @@ WORD	*vgetmem(nbytes)
 			restore(ps);
 			return( (WORD *)p );
 		} else if ( p->mlen > nbytes ) {
+			kprintf("q=%8x \t\t q->mnext=%8x \t\t q->mlen=%d \np=%8x \t\t p->mnext=%8x \t\t p->mlen=%d \n",
+			q,q->mnext,q->mlen,
+			p,p->mnext,p->mlen);
 			leftover = (struct mblock *)( (unsigned)p + nbytes );
 			q->mnext = leftover;
 			leftover->mnext = p->mnext;
 			leftover->mlen = p->mlen - nbytes;
-			kprintf("%d bytes got from backing store[%d], leftover is %d\n", nbytes, proctab[currpid].store, leftover->mlen);
+
+			kprintf("leftover=%8x \t leftover->mnext=%8x \t leftover->mlen=%d\nq=%8x \t q->mnext=%8x \t q->mlen=%d \np=%8x \t p->mnext=%8x \t p->mlen=%d \n",
+			leftover,leftover->mnext,leftover->mlen,
+			q,q->mnext,q->mlen,p,
+			p->mnext,p->mlen);
+
 			restore(ps);
-			return( (WORD *)p );
+			/**
+			 *we should return the head instead of p, because in my implementation, vmemlist is not a global value.
+			 */
+			// return( (WORD *)p );
+			return( (WORD *)q );
 		}
 	restore(ps);
 	return( (WORD *)SYSERR );

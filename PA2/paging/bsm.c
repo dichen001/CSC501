@@ -6,6 +6,7 @@
 #include <proc.h>
 
 bs_map_t bsm_tab[NBS];
+int curr_bs_num;
 
 /*-------------------------------------------------------------------------
  * init_bsm- initialize backing store map table
@@ -24,6 +25,7 @@ SYSCALL init_bsm()
 		bsm_tab[i].bs_npages =	-1;
 		bsm_tab[i].bs_sem =	-1;
 	}
+	curr_bs_num = 0;
 	kprintf("backing store map table initialized \n");
 	return OK;
 }
@@ -35,10 +37,6 @@ SYSCALL init_bsm()
 SYSCALL update_bsm( int pid, int type, int vhpno, int npages, int store )
 {	kprintf("update backing store map table {pid: %d(%s), vpage: %d, store: %d, npages: %d }\n",
 										pid, proctab[pid].pname, vhpno, store, npages);
-	if(bsm_tab[store].private == BSM_PRIVATE){
-		kprintf("!!! This bs is private, cannot be remapped. !!!\n");
-		return SYSERR;
-	}
 	bsm_tab[store].mapping_num += 1;
 	bsm_tab[store].private = type;
 	bsm_tab[store].bs_status = BSM_MAPPED;
@@ -52,7 +50,7 @@ SYSCALL update_bsm( int pid, int type, int vhpno, int npages, int store )
 	proctab[pid].vhpnpages = npages;
 	//initialize the virtual memory list, and map it to the according backing store.
 	struct	mblock	*mptr;
-	kprintf("if don't use getmem() here, it will probably go wrong.\n");
+	//kprintf("if don't use getmem() here, it will probably go wrong.\n");  //it turns out everything goes well.
 	proctab[pid].vmemlist->mnext = mptr = (struct mblock *) roundmb(bsid2pa(store));
 	mptr->mnext = 0;
 	mptr->mlen = npages * NBPG;		//attention, this is in bytes.
@@ -70,7 +68,8 @@ SYSCALL get_bsm()
 	for (i = 0; i < NBS; ++i)
 	{
 		if(bsm_tab[i].bs_status == BSM_UNMAPPED){
-			kprintf("Backing_Store[%d] got\n",i);
+			curr_bs_num += 1;
+			kprintf("Backing_Store[%d] got, total bs in use is %d\n",i, curr_bs_num);
 			return i;
 		}			
 	}
@@ -93,6 +92,12 @@ SYSCALL free_bsm(int i)
 	bsm_tab[i].bs_vpno = -1;
 	bsm_tab[i].bs_npages =	-1;
 	bsm_tab[i].bs_sem =	-1;
+
+	proctab[currpid].store = -1;
+	proctab[currpid].vhpno = -1;
+	proctab[currpid].vhpnpages = -1;
+	proctab[currpid].vmemlist = NULL;
+	kprintf("backing_store[%d] released by process: %s\n",i,proctab[currpid].pname);
 	kprintf("free_bsm(%d) completed\n", i);
 }
 

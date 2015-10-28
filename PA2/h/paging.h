@@ -66,6 +66,7 @@ typedef struct{
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
+extern  int curr_bs_num;    /* currently used backing store number  */
 /* use some needed function here */
 extern void eable_paging();
 extern void set_PDBR(int pid);
