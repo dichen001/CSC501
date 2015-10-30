@@ -16,28 +16,38 @@ WORD	*vgetmem(nbytes)
 {
 
 	STATWORD ps;    
-	struct	mblock	*p, *q, *leftover;
-	struct	mblock vmemlist;
-	vmemlist = *(proctab[currpid].vmemlist);
 	disable(ps);
-	if (nbytes == 0 || nbytes > vmemlist.mlen || vmemlist.mnext== (struct mblock *) NULL) {
-		kprintf("ERROR in getmem, nbytes required is %d, pages is backing store is %d\n",nbytes, vmemlist.mlen);
+	struct	mblock	*p, *q, *leftover;
+	struct	mblock *vmemlist;
+	vmemlist = proctab[currpid].vmemlist;
+	kprintf("&vmemlist=%x, vmemlist=%x, &vmemlist->mnext=%x, vmemlist->mnext=%x, vmemlist->mlen=%d\n",
+		&vmemlist,vmemlist,&vmemlist->mnext,vmemlist->mnext,vmemlist->mlen);
+	//disable(ps);
+	if (nbytes == 0 || nbytes > vmemlist->mlen || vmemlist->mnext == (struct mblock *) NULL) {
+		kprintf("ERROR in vgetmem, nbytes required is %d, pages is backing store is %d\n",nbytes, vmemlist->mlen);
 		restore(ps);
 		return( (WORD *)SYSERR);
 	}
 	nbytes = (unsigned int) roundmb(nbytes);
-	for (q= &vmemlist,p=vmemlist.mnext ;
+	kprintf("nbtes=%d\n",nbytes);
+	for (q= vmemlist,p=vmemlist->mnext ;
 	     p != (struct mblock *) NULL ;
-	     q=p,p=p->mnext)
+	     q=p,p=p->mnext){
+		kprintf("q=%x, \t p=%x\n",q,p);
+		kprintf("p->mlen=%x, \t p=%x\n",p->mlen,p);
 		if ( p->mlen == nbytes) {
 			q->mnext = p->mnext;
 			kprintf("nbytes required is equal to the pages in backing store, which is %d\n", nbytes);
 			restore(ps);
 			return( (WORD *)p );
-		} else if ( p->mlen > nbytes ) {
-			kprintf("q=%8x \t\t q->mnext=%8x \t\t q->mlen=%d \np=%8x \t\t p->mnext=%8x \t\t p->mlen=%d \n",
+		} 
+		else if ( p->mlen > nbytes ) {
+			kprintf("q=%8x \t q->mnext=%8x \t q->mlen=%d \n&q=%8x \t &q->mnext=%8x \t &(q->mlen)=%8x\np=%8x \t\t p->mnext=%8x \t\t p->mlen=%d \n&p=%8x \t &p->mnext=%8x \t &(p->mlen)=%8x\n",
 			q,q->mnext,q->mlen,
-			p,p->mnext,p->mlen);
+			&q,&(q->mnext),&(q->mlen),
+			p,p->mnext,p->mlen,
+			&p,&(p->mnext),&(p->mlen));
+
 			leftover = (struct mblock *)( (unsigned)p + nbytes );
 			q->mnext = leftover;
 			leftover->mnext = p->mnext;
@@ -49,12 +59,11 @@ WORD	*vgetmem(nbytes)
 			p->mnext,p->mlen);
 
 			restore(ps);
-			/**
-			 *we should return the head instead of p, because in my implementation, vmemlist is not a global value.
-			 */
-			// return( (WORD *)p );
-			return( (WORD *)q );
+			// p is the memory we got after calling vget
+			return( (WORD *)p );
 		}
+	}
+		
 	restore(ps);
 	return( (WORD *)SYSERR );
 

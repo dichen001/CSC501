@@ -41,8 +41,9 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	
 	/* for virtual address mapping */
 	int store = get_bsm();
-	update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
-	
+	bsm_tab[store].private = BSM_PRIVATE;
+	//update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
+	bsm_map(pid, 4096, store, hsize);
 	restore(ps);
 	return pid;
 }

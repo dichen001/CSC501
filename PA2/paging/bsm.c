@@ -51,6 +51,8 @@ SYSCALL update_bsm( int pid, int type, int vhpno, int npages, int store )
 	//initialize the virtual memory list, and map it to the according backing store.
 	struct	mblock	*mptr;
 	//kprintf("if don't use getmem() here, it will probably go wrong.\n");  //it turns out everything goes well.
+	kprintf("sizeof(struct mblock *)=%d,\t sizeof(struct mblock)=%d\n",sizeof(struct mblock *),sizeof(struct mblock));
+	proctab[pid].vmemlist = getmem(sizeof(struct mblock *));
 	proctab[pid].vmemlist->mnext = mptr = (struct mblock *) roundmb(bsid2pa(store));
 	mptr->mnext = 0;
 	mptr->mlen = npages * NBPG;		//attention, this is in bytes.
@@ -114,8 +116,41 @@ SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
  * bsm_map - add an mapping into bsm_tab 
  *-------------------------------------------------------------------------
  */
-SYSCALL bsm_map(int pid, int vpno, int source, int npages)
+SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 {
+	kprintf("bsm_map {pid: %d(%s), vpage: %d, store: %d, npages: %d }\n",
+				pid, proctab[pid].pname, vpno, store, npages);
+	//bsm_tab[] serves to show the globla value of a backing store.
+	bsm_tab[store].mapping_num += 1;
+	bsm_tab[store].bs_status = BSM_MAPPED;
+	if(bsm_tab[store].mapping_num == 1){
+		bsm_tab[store].bs_pid = pid;
+		bsm_tab[store].bs_vpno = vpno;
+		bsm_tab[store].bs_npages =	npages;
+		//bsm_tab[store].bs_sem =	-1;	
+	}
+	
+	//proctab[pid].xxx serves to show the process specific value of a backing store.
+	/**
+	 * the proctab[pid].bsmap  need to be implement.
+	 */
+	proctab[pid].store = store;
+	proctab[pid].vhpno = vpno;
+	proctab[pid].vhpnpages = npages;
+	
+	/**
+	 * two things need notice.   
+	 * getmem() is very important here, it allocate memory in kernel to store .vmemlist
+	 * sizeof(struct mblock *)= 4; sizeof(struct mblock)=8.
+	 */
+	proctab[pid].vmemlist = getmem(sizeof(struct mblock *));
+	proctab[pid].vmemlist->mnext = (struct mblock *) roundmb(vp2pa(vpno));
+	proctab[pid].vmemlist->mlen = vp2pa(npages);
+
+	kprintf("Backing_Store[%d] mapping updated\n",store);
+	kprintf("proctab[pid].vmemlist=%x, \tproctab[pid].vmemlist->mnext=%x\n",proctab[pid].vmemlist,proctab[pid].vmemlist->mnext);
+	kprintf("vmemlist->mnext(%x) mapping to bs[%d]@(%x), length is %d\n",proctab[pid].vmemlist->mnext,store,bsid2pa(store), npages);
+	return OK;
 }
 
 

@@ -18,7 +18,7 @@ int get_bs(bsd_t bs_id, unsigned int npages) {
 		curr_bs_num += 1;
 		kprintf("Backing_Store[%d] got, total bs in use is %d\n",bs_id, curr_bs_num);
 		
-		update_bsm(currpid, BSM_NOTPRIVATE, 4096, npages, bs_id);
+		bsm_map(currpid, 4096, bs_id, npages);
 		kprintf("get_bs(bs_id(%d), npages(%d)) completed\n",bs_id,npages);
 		
 		restore(ps);

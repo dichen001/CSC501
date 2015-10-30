@@ -15,26 +15,19 @@ SYSCALL	vfreemem(block, size)
 	struct	mblock	*block;
 	unsigned size;
 {	 
-	struct	mblock * x = block;
 	STATWORD ps;    
-	disable(ps);
-	kprintf("x=%8x \t x->mnext=%8x \t x->mlen=%d\n",
-			x,x->mnext,x->mlen);
-	kprintf("block=%8x \t block->mnext=%8x \t block->mlen=%d \t size=%d\nproctab[currpid].vhpno=%8x \t proctab[currpid].vhpnpages=%8x\n",
-			block,block->mnext,block->mlen,size,proctab[currpid].vhpno*NBPG,proctab[currpid].vhpnpages*NBPG);
-	//STATWORD ps;    
 	struct	mblock	*p, *q;
 	unsigned top;
-	struct	mblock vmemlist;
-	vmemlist = *(proctab[currpid].vmemlist);
+
+	struct	mblock *vmemlist;
+	vmemlist = proctab[currpid].vmemlist;
 	// check if block address is within the the memory address range of the virtual heap. 
-	if (size==0 || (unsigned)block > (unsigned)(proctab[currpid].vhpno + proctab[currpid].vhpnpages)*NBPG
-	    || ((unsigned)block)<((unsigned) proctab[currpid].vhpno*NBPG))
+	if (size==0 || (unsigned)block > (unsigned)(proctab[currpid].vhpno + proctab[currpid].vhpnpages)*NBPG || ((unsigned)block)<((unsigned) proctab[currpid].vhpno*NBPG))
 		return(SYSERR);
 	size = (unsigned)roundmb(size);
 	kprintf("entered\n");
-	//disable(ps);
-	for( p=vmemlist.mnext,q= &vmemlist;
+	disable(ps);
+	for( p=(vmemlist->mnext),q=vmemlist;
 	     p != (struct mblock *) NULL && p < block ;
 	     q=p,p=p->mnext ){
 		 kprintf("block=%8x \t block->mnext=%8x \t block->mlen=%d\nq=%8x \t q->mnext=%8x \t q->mlen=%d \np=%8x \t p->mnext=%8x \t p->mlen=%d \n",
@@ -43,13 +36,14 @@ SYSCALL	vfreemem(block, size)
 			p->mnext,p->mlen);
 	}
 	// check if the memeory going to be free is reasonable, i.e within the range.
-	if (((top=q->mlen+(unsigned)q)>(unsigned)block && q!= &vmemlist) ||
+	if (((top=q->mlen+(unsigned)q)>(unsigned)block && q!= vmemlist) ||
 	    (p!=NULL && (size+(unsigned)block) > (unsigned)p )) {
+		kprintf("unreaoable memory to required to be free\n");
 		restore(ps);
 		return(SYSERR);
 	}
 	// if the block address is right at the top of free memory, we just add this block behind the free memory block.
-	if ( q!= &vmemlist && top == (unsigned)block ){
+	if ( q!= vmemlist && top == (unsigned)block ){
 		kprintf("if the block address is right at the top of free memory, we just add this block behind the free memory block.\n");
 		kprintf("block=%8x \t block->mnext=%8x \t block->mlen=%d\nq=%8x \t q->mnext=%8x \t q->mlen=%d \np=%8x \t p->mnext=%8x \t p->mlen=%d \n",
 			block,block->mnext,block->mlen,
@@ -60,14 +54,15 @@ SYSCALL	vfreemem(block, size)
 	else {
 	// else we add this bolck before the free memory block.
 	 kprintf("else we add this bolck before the free memory block.\n");
-	kprintf("block=%8x \t block->mnext=%8x \t block->mlen=%d\nq=%8x \t q->mnext=%8x \t q->mlen=%d \np=%8x \t p->mnext=%8x \t p->mlen=%d \n",
-			block,block->mnext,block->mlen,
-			q,q->mnext,q->mlen,p,
-			p->mnext,p->mlen);
+	
 		block->mlen = size;
 		block->mnext = p;
 		q->mnext = block;
 		q = block;
+		kprintf("block=%8x \t block->mnext=%8x \t block->mlen=%d\nq=%8x \t q->mnext=%8x \t q->mlen=%d \np=%8x \t p->mnext=%8x \t p->mlen=%d \n",
+			block,block->mnext,block->mlen,
+			q,q->mnext,q->mlen,p,
+			p->mnext,p->mlen);
 	}
 	// add-up as one
 	if ( (unsigned)( q->mlen + (unsigned)q ) == (unsigned)p) {

@@ -11,7 +11,7 @@ pfintr:
     pushfl              /* save the eflag register                  */
     cli                 /* disable all interrupts                   */
     pushal              /* save all general purpose registers       */
-    call pfintr         /* call high level pf handler code          */
+    call pfint         /* call high level pf handler code          */
     popal               /* restore all general purpose registers    */
     popfl               /* restore eflag register                   */
     iret                /* return from interrupt handling           */

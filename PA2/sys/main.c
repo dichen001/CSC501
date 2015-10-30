@@ -24,12 +24,12 @@ void proc1_test2() {
 	kprintf("************************************\n");
 	x = vgetmem(1000);
 	x= (struct	mblock *)x;
-	kprintf("x=%8x \t x->mnext=%8x \t x->mlen=%d\n",
-			x,x->mnext,x->mlen);
+	kprintf("x=%8x \t x->mnext=%8x \t x->mlen=%d\n",x,x->mnext,x->mlen);
 	kprintf("####################################\n");
 	vfreemem(x,1000);
 	kprintf("\n freemem(x,1000); \n\n");
 
+	/*
 	kprintf("************************************\n");
 	x = vgetmem(1000);
 	kprintf("####################################\n");
@@ -46,18 +46,20 @@ void proc1_test2() {
 	x = get_bs(4, 100); 
 	kprintf("####################################\n");
 	release_bs(4);
-/*
-  int *x;
+	*/
 
-  kprintf("ready to allocate heap space\n");
-  x = vgetmem(1024);
-  kprintf("heap allocated at %x\n", x);
-  *x = 100;
-  *(x + 1) = 200;
+	/*
+	  int *x;
 
-  kprintf("heap variable: %d %d\n", *x, *(x + 1));
-  vfreemem(x, 1024);
-*/
+	  kprintf("ready to allocate heap space\n");
+	  x = vgetmem(1024);
+	  kprintf("heap allocated at %x\n", x);
+	  *x = 100;
+	  *(x + 1) = 200;
+
+	  kprintf("heap variable: %d %d\n", *x, *(x + 1));
+	  vfreemem(x, 1024);
+	*/
 }
 
 int main()
