@@ -29,7 +29,7 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 					/* array in the code)		*/
 {	
 	/*
-	if(hsize > NBSPG){
+	if(hsize > NPGPBS){
 		kprintf("hsieze should be smaller than 256.\n");
 		return SYSERR;
 	}
@@ -42,6 +42,7 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	/* for virtual address mapping */
 	int store = get_bsm();
 	bsm_tab[store].private = BSM_PRIVATE;
+	proctab[currpid].bsmap[store].private = BSM_PRIVATE;
 	//update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
 	bsm_map(pid, 4096, store, hsize);
 	restore(ps);

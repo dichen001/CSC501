@@ -25,6 +25,7 @@ extern	int	start();
 LOCAL		sysinit();
 
 /* Declarations of major kernel variables */
+bs_map_t bsm_tab[NBS];
 struct	pentry	proctab[NPROC]; /* process table			*/
 int	nextproc;		/* next process slot to use in create	*/
 struct	sentry	semaph[NSEM];	/* semaphore table			*/
@@ -190,7 +191,7 @@ sysinit()
 
 
 	/* initialize 1. backing stores 2.free frames 3.set page fault handler */
-	init_bsm();
+	init_bsm(bsm_tab);
 	init_frm_tab();
 	init_gpt();
 

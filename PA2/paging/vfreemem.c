@@ -22,8 +22,16 @@ SYSCALL	vfreemem(block, size)
 	struct	mblock *vmemlist;
 	vmemlist = proctab[currpid].vmemlist;
 	// check if block address is within the the memory address range of the virtual heap. 
-	if (size==0 || (unsigned)block > (unsigned)(proctab[currpid].vhpno + proctab[currpid].vhpnpages)*NBPG || ((unsigned)block)<((unsigned) proctab[currpid].vhpno*NBPG))
+	/**
+	 * 	below is very erroneous!!  re-look and re-code!
+	 */
+	// temporarily //if 
+	//if (size==0 || (unsigned)block > (unsigned)(proctab[currpid].vhpno + proctab[currpid].vhpnpages)*NBPG || ((unsigned)block)<((unsigned) proctab[currpid].vhpno*NBPG))
+	if (size == 0 || size > NPGPBS*NBPG)
 		return(SYSERR);
+	if ( (unsigned) block < (unsigned) 4096*NBPG || (unsigned) block > (unsigned)(proctab[currpid].vhpno + proctab[currpid].vhpnpages)*NBPG)
+		return(SYSERR);
+
 	size = (unsigned)roundmb(size);
 	kprintf("entered\n");
 	disable(ps);
@@ -54,7 +62,7 @@ SYSCALL	vfreemem(block, size)
 	else {
 	// else we add this bolck before the free memory block.
 	 kprintf("else we add this bolck before the free memory block.\n");
-	
+		
 		block->mlen = size;
 		block->mnext = p;
 		q->mnext = block;

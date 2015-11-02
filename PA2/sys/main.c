@@ -21,6 +21,7 @@ void proc1_test2() {
 	kprintf("&i = %8x, i = %d\n",&i,i);
 	
 	struct	mblock	*x;
+	
 	kprintf("************************************\n");
 	x = vgetmem(1000);
 	x= (struct	mblock *)x;
@@ -28,7 +29,7 @@ void proc1_test2() {
 	kprintf("####################################\n");
 	vfreemem(x,1000);
 	kprintf("\n freemem(x,1000); \n\n");
-
+	
 	/*
 	kprintf("************************************\n");
 	x = vgetmem(1000);
@@ -41,12 +42,14 @@ void proc1_test2() {
 	kprintf("####################################\n");
 	vfreemem(x+500,500);
 	kprintf("\n freemem(x+500,500); \n\n");
+	*/
 
 	kprintf("************************************\n");
 	x = get_bs(4, 100); 
+	kprintf("x=%d\n",x);
 	kprintf("####################################\n");
 	release_bs(4);
-	*/
+	kprintf("************************************\n");
 
 	/*
 	  int *x;

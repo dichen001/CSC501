@@ -1,5 +1,8 @@
 /* paging.h */
 
+#ifndef _PAGING_H_
+#define _PAGING_H_
+
 typedef unsigned int	 bsd_t; //The backing store descriptor type is used to refer to a backing store.
 
 /* Structure for a page directory entry */
@@ -36,7 +39,7 @@ typedef struct {
   unsigned int pt_base	: 20;		/* location of page?		*/
 } pt_t;
 
-typedef struct{
+typedef struct{  
   unsigned int pg_offset : 12;		/* page offset			*/
   unsigned int pt_offset : 10;		/* page table offset		*/
   unsigned int pd_offset : 10;		/* page directory offset	*/
@@ -85,7 +88,7 @@ SYSCALL free_frm(int i);
 
 
 /* given calls for dealing with backing store */
-SYSCALL init_bsm();
+SYSCALL init_bsm(bs_map_t* bs);
 SYSCALL get_bsm();
 SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth);
 SYSCALL bsm_map(int pid, int vpno, int source, int npages);
@@ -104,7 +107,9 @@ SYSCALL init_gpt();
 #define FRAME0    1024	/* page id of the zero-th frame		*/
 #define NFRAMES   1024	/* number of frames for PA2 */
 #define NBS       16    /* number of backing store */
-#define NBSPG     256   /* number of backing store pages*/
+#define NBSP      2048  /* number of backing store pages */
+#define NPGPBS    128   /* number of pages per backing store */
+
 
 #define BSM_PRIVATE   1
 #define BSM_NOTPRIVATE   0
@@ -128,7 +133,10 @@ SYSCALL init_gpt();
 #define BACKING_STORE_UNIT_SIZE 0x00080000    //128 pages = 128*4k = 2^(7+12) = 2^19
 
 
-#define frid2vpno(i)  (FRAME0 + i)    //frame id to virtual page number
-#define frid2pa(i)    ( (FRAME0 + i)*NBPG )      //frame id to physical address
-#define bsid2pa(i)    ( (2048+i*128)*NBPG )
-#define vp2pa(i)    ( i*NBPG )    //virtual page to physical address.
+#define frid2vpno(i)  (FRAME0 + i)          //frame id to virtual page number
+#define frid2pa(i)    ( (unsigned int) (FRAME0 + i)*NBPG ) //frame id to physical address
+#define bsid2pa(i)    ( (unsigned int) (NBSP+i*NPGPBS)*NBPG ) //backing store id TO physical address.
+#define vp2pa(i)      ( (unsigned int) (i*NBPG) )            //virtual page to physical address.
+#define a2pno(i)    ( (unsigned int) (i/NBPG) )            //Address to Page Number.  
+
+#endif

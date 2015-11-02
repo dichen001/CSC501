@@ -17,7 +17,7 @@ SYSCALL init_frm_tab()
 	{
 		frm_tab[i].fr_status = FRM_UNMAPPED;
 		frm_tab[i].fr_pid = -1;
-		frm_tab[i].fr_vpno = frid2vpno(i);
+		frm_tab[i].fr_vpno = -1;
 		frm_tab[i].fr_refcnt = 0;
 		frm_tab[i].fr_type = -1;
 		frm_tab[i].fr_dirty = 0;
@@ -54,10 +54,12 @@ int get_frm()
 SYSCALL init_frm(int i, int pid, int type){
 	frm_tab[i].fr_status = FRM_MAPPED;	// ** will here be wrong? ** //
 	frm_tab[i].fr_pid = pid;
-	frm_tab[i].fr_vpno = frid2vpno(i);
+	frm_tab[i].fr_vpno = -1;
 	frm_tab[i].fr_refcnt += 1;
 	frm_tab[i].fr_type = type;
 	frm_tab[i].fr_dirty = 0; 
+	kprintf("frame[%d].pid=%d .vpno=%d .refcnt=%d\n",i,pid,frid2vpno(i),frm_tab[i].fr_refcnt);
+	kprintf("frame[%d] initialized\n",i);
 	return OK;
 }
 
