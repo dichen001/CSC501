@@ -17,18 +17,30 @@ void halt();
 
 void proc1_test2() {
 	kprintf("\nRuning proc1_test2() \n\n");
-	int i = 0;
+	int i,temp;
+	i = 0;
 	kprintf("&i = %8x, i = %d\n",&i,i);
 	
+	int *y;
 	struct	mblock	*x;
 	
 	kprintf("************************************\n");
 	x = vgetmem(1000);
-	x= (struct	mblock *)x;
+	//x= (struct	mblock *)x;
 	kprintf("x=%8x \t x->mnext=%8x \t x->mlen=%d\n",x,x->mnext,x->mlen);
+	y=x;
+	kprintf("&y=%x y=%x *y=%d\n",&y,y,*y);
+	*y = 100; 
+	kprintf("&y=%x y=%x *y=%d\n",&y,y,*y);
+    y++; 
+    kprintf("&y=%x y=%x *y=%d\n",&y,y,*y);
+    *y = 200; 
+    kprintf("&y=%x y=%x *y=%d\n",&y,y,*y);
+    temp = *y; 
+    kprintf("temp=%d\n",temp);
 	kprintf("####################################\n");
-	vfreemem(x,1000);
-	kprintf("\n freemem(x,1000); \n\n");
+	vfreemem(--y,1000);
+	kprintf("\n vfreemem(x,1000); \n\n");
 	
 	/*
 	kprintf("************************************\n");
@@ -48,6 +60,7 @@ void proc1_test2() {
 	x = get_bs(4, 100); 
 	kprintf("x=%d\n",x);
 	kprintf("####################################\n");
+
 	release_bs(4);
 	kprintf("************************************\n");
 

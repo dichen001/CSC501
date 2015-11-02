@@ -129,6 +129,8 @@ SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 	 * a few more jobs needed for bs, if it's created by 'vcreate()'
 	 */
 	if(bsm_tab[store].private == BSM_PRIVATE){
+		proctab[pid].vhpno = vpno;
+		proctab[pid].vhpnpages = npages;
 		proctab[pid].bsmap[store].bs_vpno = vpno;		
 		kprintf("process[%d] maps its vp(%d-%d) to bs[%d]\n",pid,vpno,vpno+npages,store);
 		
