@@ -45,9 +45,26 @@ typedef struct{
   unsigned int pd_offset : 10;		/* page directory offset	*/
 } virt_addr_t;
 
+typedef struct frame{
+  struct frame *bs_next; // The list of all the frames for this bs
+  int fr_id;
+  int fr_upper_t ;  // if this frame is a page, it indicates the frm_id of page table
+                    // if this frame is a page_table, it indicates the frm_id of page directory.
+
+  int fr_status;      /* MAPPED or UNMAPPED   */
+  int fr_pid;       /* process id using this frame  */
+  int fr_vpno;        /* corresponding virtual page no*/
+  int fr_refcnt;      /* reference count    */
+  int fr_type;        /* FR_DIR, FR_TBL, FR_PAGE  */
+  int fr_dirty;
+  void *cookie;       /* private data structure */
+  unsigned long int fr_loadtime;  /* when the page is loaded  */
+}fr_map_t;
+
 typedef struct{
   int mapping_num;    /* how many mappings on this bs */
   int private;        /* whether the other process can map or not */
+  fr_map_t  *frames;  // the list of frames that maps this bs
 
   int bs_status;			/* MAPPED or UNMAPPED		*/
   int bs_pid;				/* process id using this slot   */
@@ -56,16 +73,7 @@ typedef struct{
   int bs_sem;				/* semaphore mechanism ?	*/
 } bs_map_t;
 
-typedef struct{
-  int fr_status;			/* MAPPED or UNMAPPED		*/
-  int fr_pid;				/* process id using this frame  */
-  int fr_vpno;				/* corresponding virtual page no*/
-  int fr_refcnt;			/* reference count		*/
-  int fr_type;				/* FR_DIR, FR_TBL, FR_PAGE	*/
-  int fr_dirty;
-  void *cookie;				/* private data structure	*/
-  unsigned long int fr_loadtime;	/* when the page is loaded 	*/
-}fr_map_t;
+
 
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
@@ -85,12 +93,14 @@ SYSCALL init_frm_tab();
 int get_frm();
 SYSCALL init_frm(int i, int pid, int type);
 SYSCALL free_frm(int i);
-
+SYSCALL find_frm(int pid, int vpno);
+SYSCALL dec_frm_refcnt(int pid, int s);
+//SYSCALL write_frames_back(int pid);
 
 /* given calls for dealing with backing store */
 SYSCALL init_bsm(bs_map_t* bs);
 SYSCALL get_bsm();
-SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth);
+SYSCALL bsm_lookup(int pid, unsigned int vpno, int* store, int* pageth);
 SYSCALL bsm_map(int pid, int vpno, int source, int npages);
 SYSCALL bsm_unmap(int pid, int vpno, int flag);
 
@@ -124,7 +134,7 @@ SYSCALL init_gpt();
 #define FR_DIR		2
 
 #define FIFO		3
-#define GCM		4
+#define LRU		4
 
 #define MAX_ID          15              /* You get 16 mappings, 0 - 15 */
 
@@ -135,6 +145,7 @@ SYSCALL init_gpt();
 
 #define frid2vpno(i)  (FRAME0 + i)          //frame id to virtual page number
 #define frid2pa(i)    ( (unsigned int) (FRAME0 + i)*NBPG ) //frame id to physical address
+#define pa2frid(i)    ( (unsigned int) ( (i/NBPG) - FRAME0) )
 #define bsid2pa(i)    ( (unsigned int) (NBSP+i*NPGPBS)*NBPG ) //backing store id TO physical address.
 #define vp2pa(i)      ( (unsigned int) (i*NBPG) )            //virtual page to physical address.
 #define a2pno(i)    ( (unsigned int) (i/NBPG) )            //Address to Page Number.  

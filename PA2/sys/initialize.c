@@ -26,6 +26,7 @@ LOCAL		sysinit();
 
 /* Declarations of major kernel variables */
 bs_map_t bsm_tab[NBS];
+//int proc_bs_frame[NPROC][NPGPBS]	/*record one bs mapping to frames for each process.*/
 struct	pentry	proctab[NPROC]; /* process table			*/
 int	nextproc;		/* next process slot to use in create	*/
 struct	sentry	semaph[NSEM];	/* semaphore table			*/

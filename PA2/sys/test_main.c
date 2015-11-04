@@ -56,6 +56,7 @@ void test1()
   kprintf("\tPASSED!\n");
   return;
 }
+
 /*----------------------------------------------------------------*/
 void proc_test2(int i,int j,int* ret,int s) {
   char *addr;
@@ -608,6 +609,7 @@ int main() {
   kprintf("\n\nHello World, Xinu lives\n\n");
  
   test1();
+  /*
   test2();
   test3();
 
@@ -617,5 +619,6 @@ int main() {
 
   test7();
   test8();
+  */
   return 0;
 }

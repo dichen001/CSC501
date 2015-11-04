@@ -18,6 +18,8 @@ SYSCALL init_bsm(bs_map_t *bs)
 	{
 		bs[i].mapping_num = 0;
 		bs[i].private = BSM_NOTPRIVATE;
+		bs[i].frames = NULL;
+
 		bs[i].bs_status = BSM_UNMAPPED;
 		bs[i].bs_pid = -1;
 		bs[i].bs_vpno = 0;
@@ -45,7 +47,7 @@ SYSCALL get_bsm()
 		}			
 	}
 	kprintf("bsmtab[] is full \n");
-	return -1;
+	return SYSERR;
 }
 
 
@@ -59,6 +61,8 @@ SYSCALL free_bsm(int i)
 	kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
 	bsm_tab[i].mapping_num = 0;
 	bsm_tab[i].private = BSM_NOTPRIVATE;
+	bsm_tab[i].frames = NULL;
+
 	bsm_tab[i].bs_status = BSM_UNMAPPED;
 	bsm_tab[i].bs_pid = -1;
 	bsm_tab[i].bs_vpno = 0;
@@ -67,6 +71,8 @@ SYSCALL free_bsm(int i)
 
 	proctab[currpid].bsmap[i].mapping_num = 0;
 	proctab[currpid].bsmap[i].private = BSM_NOTPRIVATE;
+	proctab[currpid].bsmap[i].frames = NULL;
+	
 	proctab[currpid].bsmap[i].bs_status = BSM_UNMAPPED;
 	proctab[currpid].bsmap[i].bs_pid = -1;
 	proctab[currpid].bsmap[i].bs_vpno = -1;
@@ -74,6 +80,8 @@ SYSCALL free_bsm(int i)
 	proctab[currpid].bsmap[i].bs_sem =	-1;
 
 	proctab[currpid].vmemlist = NULL;
+	kprintf("bs_id=%d, bs.status=%d, bs.private=%d, bs.pid=%d, proc.bs.private=%d, proc.bs.status=%d\n",
+			i, bsm_tab[i].bs_status, bsm_tab[i].private, bsm_tab[i].bs_pid, proctab[currpid].bsmap[i].private, proctab[currpid].bsmap[i].bs_status);
 	kprintf("backing_store[%d] released by process: %s\n",i,proctab[currpid].pname);
 	kprintf("free_bsm(%d) completed\n", i);
 }
@@ -82,24 +90,24 @@ SYSCALL free_bsm(int i)
  * bsm_lookup - lookup bsm_tab and find the corresponding entry
  *-------------------------------------------------------------------------
  */
-SYSCALL bsm_lookup(int pid, long vaddr, int* store, int* pageth)
+SYSCALL bsm_lookup(int pid, unsigned int vpno, int* store, int* pageth)
 {	
 	int i;
-	unsigned int vpno = a2pno(vaddr);
-	kprintf("looking up bs for {pid=%d, vaddr=%x, vpno=%d}\n",pid,vaddr,vpno);
+	kprintf("looking up bs for {pid=%d, vpno=%d}\n",pid,vpno);
 	for(i = 0; i < NBS; i ++){
         bs_map_t *bsptr = &proctab[pid].bsmap[i];
         if(bsptr->bs_status == BSM_UNMAPPED)
         	continue;
         if((vpno >= bsptr->bs_vpno) && (vpno < bsptr->bs_vpno + bsptr->bs_npages))
-        {
+        {	
+        	kprintf("store=%d, vpno=%d, bs_vpno=%d, bs_napges=%d\n",i,vpno,bsptr->bs_vpno,bsptr->bs_npages);
 	        *store = i;
 	        *pageth = vpno - bsptr->bs_vpno;
-			kprintf("maping found: {pid: %d, vaddr: %x, store: %d, pageth: %d}\n",pid,vaddr,*store,*pageth);
+			kprintf("maping found: {pid: %d, vpno: %d, store: %d, pageth: %d}\n",pid,vpno,*store,*pageth);
 	        return OK;
         }
     }
-    kprintf("No maping found. pid=%d vaddr=%x\n",pid,vaddr);
+    kprintf("No maping found. pid=%d vpno=%d\n",pid,vpno);
 	*store = -1;
 	*pageth = -1;
     return SYSERR;
@@ -116,6 +124,8 @@ SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 				pid, proctab[pid].pname, vpno, store, npages);
 	//bsm_tab[] serves to show the globla value of a backing store.
 	bsm_tab[store].mapping_num += 1;
+	kprintf("mapping on backing_store[%d]= %d\n",store,bsm_tab[store].mapping_num);
+	//save the data of the first process that maps this bs.
 	if(bsm_tab[store].mapping_num == 1){
 		bsm_tab[store].bs_status = BSM_MAPPED;
 		bsm_tab[store].bs_pid = pid;
@@ -124,42 +134,8 @@ SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 		//bsm_tab[store].bs_sem =	-1;	
 	}
 	proctab[pid].bsmap[store].bs_status = BSM_MAPPED;
+	proctab[pid].bsmap[store].bs_vpno = vpno;
 	proctab[pid].bsmap[store].bs_npages = npages;
-	/**
-	 * a few more jobs needed for bs, if it's created by 'vcreate()'
-	 */
-	if(bsm_tab[store].private == BSM_PRIVATE){
-		proctab[pid].vhpno = vpno;
-		proctab[pid].vhpnpages = npages;
-		proctab[pid].bsmap[store].bs_vpno = vpno;		
-		kprintf("process[%d] maps its vp(%d-%d) to bs[%d]\n",pid,vpno,vpno+npages,store);
-		
-		/**
-		 * two things need notice.   
-		 * getmem() is very important here, it allocate memory in kernel to store .vmemlist
-		 * sizeof(struct mblock *)= 4; sizeof(struct mblock)=8.
-		 */
-		proctab[pid].vmemlist = getmem(sizeof(struct mblock *));
-		proctab[pid].vmemlist->mnext = (struct mblock *) roundmb(vp2pa(vpno));
-		//proctab[pid].vmemlist->mlen = vp2pa(npages);	
-		proctab[pid].vmemlist->mlen = 0;	
-		kprintf("proctab[pid].vmemlist=%x, \tproctab[pid].vmemlist->mnext=%x\n",proctab[pid].vmemlist,proctab[pid].vmemlist->mnext);
-		kprintf("vmemlist->mnext(%x) mapping to bs[%d]@(%x), length is %d\n",proctab[pid].vmemlist->mnext, store, bsid2pa(store), npages);
-		
-		/**
-		 * Since this process hasn't started to run yet page fault won't
-		 * work. We need to actually write mnext and mlen directly to the
-		 * first 8 bytes of the first page of the backing store, so that 
-		 * after page fault, they can get these data through mapping from 
-		 * virtual page to physical page.
-		 */
-		kprintf("hard code.\n");
-	    struct mblock * memblock = bsid2pa(store);
-	    memblock->mnext = 0;  
-	    memblock->mlen  = npages*NBPG;
-	    kprintf("The 'mnext' and 'mlengh' have been writen to (%x) (%x) of backing store[%d]\n",
-	    	&(memblock->mnext),&(memblock->mlen),store);
-	}
 	kprintf("Backing_Store[%d] mapping updated\n",store);
 	return OK;
 }

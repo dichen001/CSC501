@@ -28,23 +28,59 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {	
-	/*
+	
 	if(hsize > NPGPBS){
-		kprintf("hsieze should be smaller than 256.\n");
+		kprintf("hsize should be smaller than 128.\n");
 		return SYSERR;
 	}
-	*/
+	
 	STATWORD ps;
 	disable(ps);
 	
 	int pid = create(procaddr, ssize, priority, name, nargs, args); //set stack as private is optional
 	
 	/* for virtual address mapping */
-	int store = get_bsm();
+	int store;
+	if( store=get_bsm() == SYSERR)
+	{
+		kprintf("FULL! Cannot allocate bs for vcreate!\n");
+		restore(ps);
+		return SYSERR;
+	}
+	
+	proctab[pid].vhpno = 4096;	
+	proctab[pid].vhpnpages = hsize;	
+	proctab[pid].bsmap[store].private = BSM_PRIVATE;
 	bsm_tab[store].private = BSM_PRIVATE;
-	proctab[currpid].bsmap[store].private = BSM_PRIVATE;
-	//update_bsm(pid, BSM_PRIVATE, 4096, hsize, store);
 	bsm_map(pid, 4096, store, hsize);
+	
+	kprintf("process[%d] maps its vp(%d-%d) to bs[%d]\n",pid,4096,4096+hsize,store);
+	
+	/**
+	 * two things need notice.   
+	 * getmem() is very important here, it allocate memory in kernel to store .vmemlist
+	 * sizeof(struct mblock *)= 4; sizeof(struct mblock)=8.
+	 */
+	proctab[pid].vmemlist = getmem(sizeof(struct mblock *));
+	proctab[pid].vmemlist->mnext = (struct mblock *) roundmb(vp2pa(4096));
+	proctab[pid].vmemlist->mlen = 0;	
+	kprintf("proctab[pid].vmemlist=%x, \tproctab[pid].vmemlist->mnext=%x\n",proctab[pid].vmemlist,proctab[pid].vmemlist->mnext);
+	kprintf("vmemlist->mnext(%x) mapping to bs[%d]@(%x), length is %d\n",proctab[pid].vmemlist->mnext, store, bsid2pa(store), hsize);
+	
+	/**
+	 * Since this process hasn't started to run yet page fault won't
+	 * work. We need to actually write mnext and mlen directly to the
+	 * first 8 bytes of the first page of the backing store, so that 
+	 * after page fault, they can get these data through mapping from 
+	 * virtual page to physical page.
+	 */
+    struct mblock * memblock = bsid2pa(store);
+    memblock->mnext = 0;  
+    memblock->mlen  = hsize*NBPG;
+    kprintf("The 'mnext' and 'mlengh' have been writeen to (%x) (%x) of backing store[%d]\n",
+    	&(memblock->mnext),&(memblock->mlen),store);
+
+
 	restore(ps);
 	return pid;
 }

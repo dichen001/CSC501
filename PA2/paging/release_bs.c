@@ -7,7 +7,7 @@ SYSCALL release_bs(bsd_t bs_id) {
 	STATWORD ps;
     disable(ps);
   /* release the backing store with ID bs_id */
-	if(bsm_tab[bs_id].bs_pid = currpid && bsm_tab[bs_id].mapping_num == 1){
+	if(bsm_tab[bs_id].bs_pid == currpid && bsm_tab[bs_id].mapping_num == 0){
 		free_bsm(bs_id);
 		restore(ps);
    		return OK;	
