@@ -1,3 +1,6 @@
+/* user.c - main */
+
+#include <conf.h>
 #include <kernel.h>
 #include <proc.h>
 #include <stdio.h>
@@ -56,7 +59,6 @@ void test1()
   kprintf("\tPASSED!\n");
   return;
 }
-
 /*----------------------------------------------------------------*/
 void proc_test2(int i,int j,int* ret,int s) {
   char *addr;
@@ -185,7 +187,6 @@ void proc1_test4(int* ret) {
   addr = (char*) MYVADDR1;
   for (i = 0; i < 26; i++) {
     *(addr + i * NBPG) = 'A' + i;
-    kprintf("\n1_1: %c\n\n",*(addr + i * NBPG));
   }
   sleep(6);
 
@@ -193,7 +194,6 @@ void proc1_test4(int* ret) {
   for (i = 0; i < 26; i++) {
     /*expected output is abcde.....*/
     if (*(addr + i * NBPG) != 'a'+i){
-      kprintf("\n1_2: %c\n\n",*(addr + i * NBPG));
       *ret = TFAILED;
       break;    
     }
@@ -222,7 +222,6 @@ void proc2_test4(int *ret) {
   for (i = 0; i < 26; i++) {
     /*expected output is ABCDEF.....*/
     if (*(addr + i * NBPG) != 'A'+i){
-      kprintf("\n2_1: %c\n\n",*(addr + i * NBPG));
       *ret = TFAILED;
       break;
     }
@@ -231,7 +230,6 @@ void proc2_test4(int *ret) {
   /*Update the content, proc1 should see it*/
   for (i = 0; i < 26; i++) {
     *(addr + i * NBPG) = 'a' + i;
-    kprintf("\n2_2: %c\n\n",*(addr + i * NBPG));
   }
 
   xmunmap(MYVPNO2);
@@ -267,11 +265,11 @@ void proc1_test5(int* ret) {
 
   //kprintf("ready to allocate heap space\n");
   x = vgetmem(1024);
-  if ((x == NULL) || (x < 0x1000000)
+  if ((x == SYSERR) || (x < 0x1000000)
       || (x > 0x1000000 + 128 * NBPG - 1024)) {
     *ret = TFAILED;
   }
-  if (x == NULL)
+  if (x == SYSERR)
     return;
 
   *x = 100;
@@ -283,31 +281,30 @@ void proc1_test5(int* ret) {
   vfreemem(x, 1024);
 
   x = vgetmem(129*NBPG); //try to acquire a space that is bigger than size of one backing store
-  if (x != NULL) {
+  if (x != SYSERR) {
     *ret = TFAILED;
   }
 
   x = vgetmem(50*NBPG);
   y = vgetmem(50*NBPG);
   z = vgetmem(50*NBPG);
-  if ((x == NULL) || (y == NULL) || (z != NULL)){
+  if ((x == SYSERR) || (y == SYSERR) || (z != SYSERR)){
     *ret = TFAILED;
-    if (x != NULL) vfreemem(x, 50*NBPG);
-    if (y != NULL) vfreemem(y, 50*NBPG);
-    if (z != NULL) vfreemem(z, 50*NBPG);
+    if (x != SYSERR) vfreemem(x, 50*NBPG);
+    if (y != SYSERR) vfreemem(y, 50*NBPG);
+    if (z != SYSERR) vfreemem(z, 50*NBPG);
     return;
   }
   vfreemem(y, 50*NBPG);
   z = vgetmem(50*NBPG);
-  if (z == NULL){
+  if (z == SYSERR){
     *ret = TFAILED;
   }
-  if (x != NULL) vfreemem(x, 50*NBPG);
-  if (z != NULL) vfreemem(z, 50*NBPG);
+  if (x != SYSERR) vfreemem(x, 50*NBPG);
+  if (z != SYSERR) vfreemem(z, 50*NBPG);
   return;
-
-
 }
+
 void test5() {
   int pid1;
   int ret = TPASSED;
@@ -381,7 +378,7 @@ void test6(){
   else
     kprintf("\tPASSED!\n");
 }
- 
+
 /*-------------------------------------------------------------------------------------*/
 void test_func7()
 {
@@ -433,16 +430,16 @@ void test_func7()
     kprintf("BB 0x%08x: %d\n", 1032 * NBPG, *((int *)(1032 * NBPG)));
   }
   
-   
-  for(i=1; i <= maxpage; i++) 
-  { 
-    if ((i != 600) && (i != 800)) 
-      *((int *)addrs[i])= i+1; 
+  
+  for(i=1; i <= maxpage; i++)
+  {
+    if ((i != 600) && (i != 800))
+      *((int *)addrs[i])= i+1;
   }
-   
-  kprintf("\n\t7.2 Expected replaced frame: 1033\n\t"); 
-  *((int *)addrs[maxpage+1]) = maxpage + 2;  
-  temp = *((int *)addrs[maxpage+1]); 
+  
+  kprintf("\n\t7.2 Expected replaced frame: 1033\n\t");
+  *((int *)addrs[maxpage+1]) = maxpage + 2; 
+  temp = *((int *)addrs[maxpage+1]);
   if (temp != *((int *)(1033 * NBPG))) {
     kprintf("\tFAILED!\n");
     kprintf("AA 0x%08x: %d\n", (int *)addrs[maxpage], *((int *)addrs[maxpage]));
@@ -613,31 +610,14 @@ int main() {
   kprintf("\n\nHello World, Xinu lives\n\n");
  
   test1();
-  kprintf("***************************************************************************************\n\n\n\n");
-  sleep(15);
-
-  test2();
-  kprintf("***************************************************************************************\n\n\n\n");
-  sleep(15);
-
-  test3();
-  kprintf("***************************************************************************************\n\n\n\n");
-  sleep(15);
-
-  test4();
-  kprintf("***************************************************************************************\n\n\n\n");
-  sleep(15);
-
-  test5();
-  kprintf("***************************************************************************************\n\n\n\n");
-  sleep(15);
   
-  //test6();
-  kprintf("***************************************************************************************\n\n\n\n");
-
-  //test7();
-  kprintf("***************************************************************************************\n\n\n\n");
-  //test8();
-  kprintf("***************************************************************************************\n\n\n\n");
+  test2();
+  test3();
+  test4();
+  test5();
+  test6();
+  test7();
+  test8();
+  
   return 0;
 }

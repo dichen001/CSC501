@@ -197,6 +197,7 @@ void enable_paging(){
 void set_PDBR(int pid){
   unsigned long pdbr = proctab[pid].pdbr;
   write_cr3(pdbr);
-  kprintf("PDBR %8x set to the base register of process *%s* \n",pdbr, proctab[pid].pname);
+  if(GDB)
+    kprintf("PDBR %8x set to the base register of process *%s* \n",pdbr, proctab[pid].pname);
 }
 

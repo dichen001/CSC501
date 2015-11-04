@@ -83,6 +83,8 @@ SYSCALL xmunmap(int virtpage )
       return SYSERR;
   }
   //decrease the ref of frames used by this bs and free them if ref == 0.
+  if(GDB)
+    kprintf("in xmunmap(), pid=%d\n",currpid);
   dec_frm_refcnt(currpid, *store);
   bsm_tab[*store].mapping_num -= 1;
   // Finally must invalidate TLB entries since page table contents 

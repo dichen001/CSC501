@@ -86,5 +86,6 @@ extern	struct	pentry proctab[];
 extern	int	numproc;		/* currently active processes	*/
 extern	int	nextproc;		/* search point for free slot	*/
 extern	int	currpid;		/* currently executing process	*/
-
+extern	int	old_pid;		/* for PA2 */
+extern  int GDB;			/* for PA2 */
 #endif

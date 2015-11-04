@@ -92,10 +92,11 @@ SYSCALL xmunmap(int virtpage );
 SYSCALL init_frm_tab();
 int get_frm();
 SYSCALL init_frm(int i, int pid, int type);
+SYSCALL reset_frm(int i);
 SYSCALL free_frm(int i);
 SYSCALL find_frm(int pid, int vpno);
 SYSCALL dec_frm_refcnt(int pid, int s);
-//SYSCALL write_frames_back(int pid);
+SYSCALL write_back();
 
 /* given calls for dealing with backing store */
 SYSCALL init_bsm(bs_map_t* bs);
@@ -111,7 +112,7 @@ SYSCALL write_bs(char *, bsd_t, int);
 
 /* given calls for dealing with backing store */
 SYSCALL init_gpt();
-
+extern  int GDB;      /* for PA2 */
 
 #define NBPG      4096  /* number of bytes per page	*/
 #define FRAME0    1024	/* page id of the zero-th frame		*/

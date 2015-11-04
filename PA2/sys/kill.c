@@ -36,7 +36,10 @@ SYSCALL kill(int pid)
 	dev = pptr->ppagedev;
 	if (! isbaddev(dev) )
 		close(dev);
-	
+
+	//*******for PA2
+	//free_frm( pa2frid(proctab[pid].pdbr) );
+	//*******for PA2
 	send(pptr->pnxtkin, pid);
 
 	freestk(pptr->pbase, pptr->pstklen);

@@ -12,7 +12,8 @@ int curr_bs_num;
  *-------------------------------------------------------------------------
  */
 SYSCALL init_bsm(bs_map_t *bs)
-{	kprintf("initialize backing store map table\n");
+{	if(GDB)
+		kprintf("initialize backing store map table\n");
 	int i;
 	for (i = 0; i < NBS; ++i)
 	{
@@ -27,7 +28,8 @@ SYSCALL init_bsm(bs_map_t *bs)
 		bs[i].bs_sem =	-1;
 	}
 	curr_bs_num = 0;
-	kprintf("backing store map table initialized \n");
+	if(GDB)
+		kprintf("backing store map table initialized \n");
 	return OK;
 }
  
@@ -42,7 +44,8 @@ SYSCALL get_bsm()
 	{
 		if(bsm_tab[i].bs_status == BSM_UNMAPPED){
 			curr_bs_num += 1;
-			kprintf("Backing_Store[%d] got, total bs in use is %d\n",i, curr_bs_num);
+			if(GDB)
+				kprintf("Backing_Store[%d] got, total bs in use is %d\n",i, curr_bs_num);
 			return i;
 		}			
 	}
@@ -58,7 +61,8 @@ SYSCALL get_bsm()
 SYSCALL free_bsm(int i)
 {
 	//not complete, wait to be implemented.
-	kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
+	if(GDB)
+		kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
 	bsm_tab[i].mapping_num = 0;
 	bsm_tab[i].private = BSM_NOTPRIVATE;
 	bsm_tab[i].frames = NULL;
@@ -80,10 +84,13 @@ SYSCALL free_bsm(int i)
 	proctab[currpid].bsmap[i].bs_sem =	-1;
 
 	proctab[currpid].vmemlist = NULL;
-	kprintf("bs_id=%d, bs.status=%d, bs.private=%d, bs.pid=%d, proc.bs.private=%d, proc.bs.status=%d\n",
+	if(GDB)
+		kprintf("bs_id=%d, bs.status=%d, bs.private=%d, bs.pid=%d, proc.bs.private=%d, proc.bs.status=%d\n",
 			i, bsm_tab[i].bs_status, bsm_tab[i].private, bsm_tab[i].bs_pid, proctab[currpid].bsmap[i].private, proctab[currpid].bsmap[i].bs_status);
-	kprintf("backing_store[%d] released by process: %s\n",i,proctab[currpid].pname);
-	kprintf("free_bsm(%d) completed\n", i);
+	if(GDB)
+		kprintf("backing_store[%d] released by process: %s\n",i,proctab[currpid].pname);
+	if(GDB)
+		kprintf("free_bsm(%d) completed\n", i);
 }
 
 /*-------------------------------------------------------------------------
@@ -93,17 +100,20 @@ SYSCALL free_bsm(int i)
 SYSCALL bsm_lookup(int pid, unsigned int vpno, int* store, int* pageth)
 {	
 	int i;
-	kprintf("looking up bs for {pid=%d, vpno=%d}\n",pid,vpno);
+	if(GDB)
+		kprintf("looking up bs for {pid=%d, vpno=%d}\n",pid,vpno);
 	for(i = 0; i < NBS; i ++){
         bs_map_t *bsptr = &proctab[pid].bsmap[i];
         if(bsptr->bs_status == BSM_UNMAPPED)
         	continue;
         if((vpno >= bsptr->bs_vpno) && (vpno < bsptr->bs_vpno + bsptr->bs_npages))
         {	
-        	kprintf("store=%d, vpno=%d, bs_vpno=%d, bs_napges=%d\n",i,vpno,bsptr->bs_vpno,bsptr->bs_npages);
+        	if(GDB)
+        		kprintf("store=%d, vpno=%d, bs_vpno=%d, bs_napges=%d\n",i,vpno,bsptr->bs_vpno,bsptr->bs_npages);
 	        *store = i;
 	        *pageth = vpno - bsptr->bs_vpno;
-			kprintf("maping found: {pid: %d, vpno: %d, store: %d, pageth: %d}\n",pid,vpno,*store,*pageth);
+			if(GDB)
+				kprintf("maping found: {pid: %d, vpno: %d, store: %d, pageth: %d}\n",pid,vpno,*store,*pageth);
 	        return OK;
         }
     }
@@ -120,11 +130,13 @@ SYSCALL bsm_lookup(int pid, unsigned int vpno, int* store, int* pageth)
  */
 SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 {
-	kprintf("bsm_map {pid: %d(%s), vpage: %d, store: %d, npages: %d }\n",
+	if(GDB)
+		kprintf("bsm_map {pid: %d(%s), vpage: %d, store: %d, npages: %d }\n",
 				pid, proctab[pid].pname, vpno, store, npages);
 	//bsm_tab[] serves to show the globla value of a backing store.
 	bsm_tab[store].mapping_num += 1;
-	kprintf("mapping on backing_store[%d]= %d\n",store,bsm_tab[store].mapping_num);
+	if(GDB)
+		kprintf("mapping on backing_store[%d]= %d\n",store,bsm_tab[store].mapping_num);
 	//save the data of the first process that maps this bs.
 	if(bsm_tab[store].mapping_num == 1){
 		bsm_tab[store].bs_status = BSM_MAPPED;
@@ -136,7 +148,8 @@ SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 	proctab[pid].bsmap[store].bs_status = BSM_MAPPED;
 	proctab[pid].bsmap[store].bs_vpno = vpno;
 	proctab[pid].bsmap[store].bs_npages = npages;
-	kprintf("Backing_Store[%d] mapping updated\n",store);
+	if(GDB)
+		kprintf("Backing_Store[%d] mapping updated\n",store);
 	return OK;
 }
 

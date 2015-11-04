@@ -17,12 +17,14 @@ unsigned long currSP;	/* REAL sp of current process */
  */
 int	resched()
 {
+	
 	STATWORD		PS;
 	register struct	pentry	*optr;	/* pointer to old process entry */
 	register struct	pentry	*nptr;	/* pointer to new process entry */
 	register int i;
 
 	disable(PS);
+	old_pid = currpid;
 	/* no switch needed if current process priority higher than next*/
 
 	if ( ( (optr= &proctab[currpid])->pstate == PRCURR) &&
@@ -83,7 +85,8 @@ int	resched()
 	PrintSaved(nptr);
 #endif
 	/* set PDBR for the process, because every process has its own memory space. */
-	//write_frames_back(currpid);
+	//kprintf("\nHi, before write_back, old_pid = %d\n\n\n",old_pid);
+	write_back();
 	set_PDBR(currpid);
 	ctxsw(&optr->pesp, optr->pirmask, &nptr->pesp, nptr->pirmask);
 

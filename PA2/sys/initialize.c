@@ -40,8 +40,10 @@ struct  tty     tty[Ntty];	/* SLU buffers and mode control		*/
 #endif
 
 /* active system status */
+int GDB = 0; 		/********* for DEBUGing ************/
 int	numproc;		/* number of live user processes	*/
 int	currpid;		/* id of currently running process	*/
+int old_pid;
 int	reboot = 0;		/* non-zero after first boot		*/
 
 int	rdyhead,rdytail;	/* head/tail of ready list (q indicies)	*/
@@ -72,7 +74,6 @@ int page_replace_policy = FIFO;
 nulluser()				/* babysit CPU when no one is home */
 {
         int userpid;
-
 	console_dev = SERIAL0;		/* set console to COM0 */
 
 	initevec();
