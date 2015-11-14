@@ -99,7 +99,7 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 
 	/* for demand paging */
 	create_PD(pid);	//demand-paging related value has already been assigned inside.
-	 
+	pptr->nframes = 0;
 
 	restore(ps);
 

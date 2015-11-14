@@ -60,8 +60,7 @@ SYSCALL get_bsm()
  */
 SYSCALL free_bsm(int i)
 {
-	//not complete, wait to be implemented.
-	if(GDB)
+	//if(GDB)
 		kprintf("before free_bsm(%d), its mapping_num = %d \n", i, bsm_tab[i].mapping_num);
 	bsm_tab[i].mapping_num = 0;
 	bsm_tab[i].private = BSM_NOTPRIVATE;
@@ -117,7 +116,8 @@ SYSCALL bsm_lookup(int pid, unsigned int vpno, int* store, int* pageth)
 	        return OK;
         }
     }
-    kprintf("No maping found. pid=%d vpno=%d\n",pid,vpno);
+    if(GDB)
+    	kprintf("No maping found. pid=%d vpno=%d\n",pid,vpno);
 	*store = -1;
 	*pageth = -1;
     return SYSERR;
@@ -135,7 +135,7 @@ SYSCALL bsm_map(int pid, int vpno, int store, int npages)
 				pid, proctab[pid].pname, vpno, store, npages);
 	//bsm_tab[] serves to show the globla value of a backing store.
 	bsm_tab[store].mapping_num += 1;
-	if(GDB)
+	//if(GDB)
 		kprintf("mapping on backing_store[%d]= %d\n",store,bsm_tab[store].mapping_num);
 	//save the data of the first process that maps this bs.
 	if(bsm_tab[store].mapping_num == 1){

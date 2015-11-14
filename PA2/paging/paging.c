@@ -43,6 +43,9 @@ SYSCALL init_gpt(){
 
 SYSCALL init_pd(pd_t *new_pd){
 	int i;
+	STATWORD ps;
+	// Disable interrupts
+    disable(ps);
 	for (i = 4; i < 1024; ++i)
 	{
 		new_pd[i].pd_pres = 0;
@@ -57,13 +60,17 @@ SYSCALL init_pd(pd_t *new_pd){
 		new_pd[i].pd_avail = 0; // not in use right now.
 		new_pd[i].pd_base = 0;	
 	}
-	if(GDB)
+	//if(GDB)
 		kprintf("pd: %x initialized\n",new_pd);
+	restore(ps);
 	return OK;
 }
 
 SYSCALL reset_pd(pd_t *new_pd){
 	int i;
+	STATWORD ps;
+	// Disable interrupts
+    disable(ps);
 	for (i = 0; i < 1024; ++i)
 	{
 		new_pd[i].pd_pres = 0;
@@ -78,13 +85,17 @@ SYSCALL reset_pd(pd_t *new_pd){
 		new_pd[i].pd_avail = 0; // not in use right now.
 		new_pd[i].pd_base = 0;	
 	}
-	if(GDB)
+	//if(GDB)
 		kprintf("pd: %x reset\n",new_pd);
+	restore(ps);
 	return OK;
 }
 
 SYSCALL init_pt(pt_t *new_pt){
 	int i;
+	STATWORD ps;
+	// Disable interrupts
+    disable(ps);
 	for (i = 0; i < 1024; ++i)
 	{
 		new_pt[i].pt_pres = 0;
@@ -101,10 +112,14 @@ SYSCALL init_pt(pt_t *new_pt){
 	}
 	if(GDB)
 		kprintf("pt: %x initialized\n",new_pt);
+	restore(ps);
 	return OK;
 }
 
 SYSCALL create_PD(int pid){
+	STATWORD ps;
+	// Disable interrupts
+    disable(ps);
 	if(GDB)
 		kprintf("\n\ncreating Page Directory for process: %s \n",proctab[pid].pname);
 	int avail = get_frm();	//get the id of a new frame from frm_tab[];
@@ -140,6 +155,7 @@ SYSCALL create_PD(int pid){
 	
 	if(GDB)
 		kprintf("new Page Directory for process: %s created\n",proctab[pid].pname);
+	restore(ps);
 	return OK;
 }
 

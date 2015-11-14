@@ -9,6 +9,18 @@
  * pfint - paging fault handlerISR
  *-------------------------------------------------------------------------
  */
+
+
+fr_map_t* reverse_list(fr_map_t *head){
+  if(head==NULL || head->bs_next==NULL)
+    return head;
+  kprintf("head.frame[%d]\n", head->fr_id);
+  fr_map_t* new_head = reverse_list(head->bs_next);
+  head->bs_next->bs_next = head;
+  head->bs_next = NULL;
+  return new_head;
+ }
+
 SYSCALL pfint()
 {
   	unsigned long cr2,physical_addr;
@@ -52,7 +64,7 @@ SYSCALL pfint()
     q = vaddr->pt_offset;
     pt = vaddr->pg_offset;
     if(GDB)
-      kprintf("p=%x,q=%x,pt=%x\n",p,q,pt);
+      kprintf("p=%d,q=%d,pt=%d\n",p,q,pt);
   /* 7.2  If the pth page table does not exist obtain a frame for it and initialize it. */
     if(pd[p].pd_pres != 1){
       if(GDB)
@@ -90,6 +102,7 @@ SYSCALL pfint()
         kprintf("q=%d, new_pt[q]=%x, new_pt=%x, pd[p].pd_base=%d\n",
         q, new_pt[q], new_pt, pd[p].pd_base);
     }
+    //if the page table has already existed, just need to refcnt++;
     else
     {
       int avail = pd[p].pd_base -1024;
@@ -114,9 +127,54 @@ SYSCALL pfint()
       {
         if(GDB)
           kprintf("ATTENTION! Frames full. ###Replacement NEEDED!###\n");
-        kill(currpid);
-        restore(ps);
-        return SYSERR;
+        int frame_number = proctab[currpid].nframes-1;
+        int frame_id = proc_frames[currpid][0];
+        //update_proc_frames(pid,frame_number);
+        int i;
+        for (i = 0; i+1 < frame_number; ++i)
+        {
+          proc_frames[currpid][i] = proc_frames[currpid][i+1];
+        }
+        proctab[currpid].nframes = frame_number;
+
+        int pid = frm_tab[frame_id].fr_pid;
+        int upper_id = frm_tab[frame_id].fr_upper_t;    
+        vp = frm_tab[frame_id].fr_vpno;
+        if(GDB)
+          kprintf("currpid=%d, frame[%d].pid=%d .vpno=%d, upper_frame[%d].ref=%d\n",currpid,frame_id,pid,vp,upper_id,frm_tab[upper_id].fr_refcnt);
+        p = vp>>10;
+        q = vp &0x003ff;        
+        new_pt = vp2pa(pd[p].pd_base);
+        new_pt[q].pt_pres  = 0;
+        new_pt[q].pt_write = 1;
+        new_pt[q].pt_base  = 0;
+        if(GDB)
+          kprintf("pd_offset=%d, pt_offset=%d, pt_dirty=%d\n",p,q,new_pt[q].pt_dirty);
+        if(new_pt[q].pt_dirty == 1)
+        {
+          //write back and 
+          pageth = getmem( sizeof(int *) );
+          store = getmem( sizeof(int *) );
+          if( SYSERR == bsm_lookup(currpid, vp, store, pageth)){
+            kprintf("ERROR: This virtual address hasn't been mapped!\n");
+            kill(currpid);
+          }
+          if(GDB)
+            kprintf("maping found: {pid: %d, vpno: %d, store: %d, pageth: %d}\n",currpid,vp,*store,*pageth);
+          write_bs((char *)new_pt, *store, *pageth);
+        }
+        init_pt(new_pt);
+        reset_frm(frame_id);
+
+        frm_tab[upper_id].fr_refcnt -= 2; //it is 2, not 1.
+        if(frm_tab[upper_id].fr_refcnt <= 0){
+          //mark the appropriate entry in pd as being not present, and free pt.
+        }
+
+        //invalidate the TLB entry for the page vp using the invlpg instruction
+        if(pid == currpid) {
+          set_PDBR(currpid);
+        }
       }
       else
       {
@@ -125,6 +183,15 @@ SYSCALL pfint()
         if(GDB)
           kprintf("upper page table @frame[%d]\n",frm_tab[avail].fr_upper_t);
         frm_tab[avail].fr_vpno = vp;
+        
+
+        int counter =  proctab[currpid].nframes;      
+        proc_frames[currpid][counter] = frm_tab[avail].fr_id;
+        proctab[currpid].nframes++;
+        if(GDB)
+          kprintf("proc_frames[%d][%d] = frame[%d]\n",currpid,counter,avail);
+
+
         // Add this frame to head of the frame list within the bs of this process
         //(frm_tab[avail].bs_next)->fr_vpno
         //, proctab[currpid].bsmap[s].frames->bs_next
@@ -132,23 +199,25 @@ SYSCALL pfint()
           kprintf("&frm_tab[avail].bs_next = %x\n",frm_tab[avail].bs_next, &frm_tab[avail].bs_next);
         if(GDB)
           kprintf("proctab[%d].bsmap[%d].frames = %x, ->vpno=%d, ->bs_next=%x\n",currpid, s, proctab[currpid].bsmap[s].frames, proctab[currpid].bsmap[s].frames->fr_vpno, proctab[currpid].bsmap[s].frames->bs_next);
-        frm_tab[avail].bs_next = proctab[currpid].bsmap[s].frames;
+        frm_tab[avail].bs_next = getmem(sizeof(fr_map_t *));
+        frm_tab[avail].bs_next =  proctab[currpid].bsmap[s].frames;
         proctab[currpid].bsmap[s].frames = &frm_tab[avail];
         fr_map_t *frame = proctab[currpid].bsmap[s].frames;
         int i = frame->fr_vpno;
         if(GDB)
           kprintf("i = %d\n",i);
         if(GDB)
-          kprintf("~~~frame[%d] linked to the head of the list 'frames'\n",avail);
+          kprintf("~~~frame[%d] linked to frame[%d]\n", avail, frame->bs_next==NULL?-1:frame->bs_next->fr_id);
         if(GDB)
-          kprintf("frm_tab[avail].bs_next = %x, &**=%x\n",frm_tab[avail].bs_next, &frm_tab[avail].bs_next);
+          kprintf("frame[%d].bs_next = %x, &**=%x\n",avail,frm_tab[avail].bs_next, &frm_tab[avail].bs_next);
         if(GDB)
           kprintf("proctab[%d].bsmap[%d].frames = %x, ->vpno=%d, ->bs_next=%x\n",currpid, s, proctab[currpid].bsmap[s].frames, proctab[currpid].bsmap[s].frames->fr_vpno, proctab[currpid].bsmap[s].frames->bs_next);
 
+        
         if(GDB)
           kprintf("Mapping frame[%d](ppno[%d]) to {pid[%d], vpno[%d]} -> {bs[%d],offset:%d}\n",
           avail,frid2vpno(avail),currpid,vp,s,o);
-        
+
         physical_addr = frid2pa(avail);
         read_bs(physical_addr,s,o);
         if(GDB)
@@ -182,9 +251,6 @@ SYSCALL pfint()
  * time the CR3 register is loaded.
  */
     set_PDBR(currpid);
-
     restore(ps);
     return OK;
 }
-
-

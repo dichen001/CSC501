@@ -78,6 +78,7 @@ struct	pentry	{
         int     vhpno;                  /* starting pageno for vheap    */
         int     vhpnpages;              /* vheap size                   */
 		bs_map_t bsmap[NBS];
+		int     nframes;				/*number of frames allocated to this proccess*/
         struct mblock *vmemlist;        /* vheap list              	*/
 };
 

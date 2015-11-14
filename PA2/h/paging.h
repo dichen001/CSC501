@@ -74,10 +74,11 @@ typedef struct{
 } bs_map_t;
 
 
-
+extern int proc_frames[NPROC][1024];
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
-extern  int curr_bs_num;    /* currently used backing store number  */
+extern int curr_bs_num;    /* currently used backing store number  */
+extern int Enter_From_restore_frame;
 /* use some needed function here */
 extern void eable_paging();
 extern void set_PDBR(int pid);
@@ -97,6 +98,7 @@ SYSCALL free_frm(int i);
 SYSCALL find_frm(int pid, int vpno);
 SYSCALL dec_frm_refcnt(int pid, int s);
 SYSCALL write_back();
+SYSCALL recover_back(int pid);
 
 /* given calls for dealing with backing store */
 SYSCALL init_bsm(bs_map_t* bs);

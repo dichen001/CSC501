@@ -50,6 +50,7 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	
 	proctab[pid].vhpno = 4096;	
 	proctab[pid].vhpnpages = hsize;	
+	proctab[pid].nframes = 0;
 	proctab[pid].bsmap[store].private = BSM_PRIVATE;
 	bsm_tab[store].private = BSM_PRIVATE;
 	bsm_map(pid, 4096, store, hsize);

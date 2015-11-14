@@ -26,7 +26,8 @@ LOCAL		sysinit();
 
 /* Declarations of major kernel variables */
 bs_map_t bsm_tab[NBS];
-//int proc_bs_frame[NPROC][NPGPBS]	/*record one bs mapping to frames for each process.*/
+int proc_frames[NPROC][1024];	/*record the frames vpno allocated to each process.*/
+
 struct	pentry	proctab[NPROC]; /* process table			*/
 int	nextproc;		/* next process slot to use in create	*/
 struct	sentry	semaph[NSEM];	/* semaphore table			*/
@@ -41,6 +42,7 @@ struct  tty     tty[Ntty];	/* SLU buffers and mode control		*/
 
 /* active system status */
 int GDB = 0; 		/********* for DEBUGing ************/
+int Enter_From_restore_frame = 0;	
 int	numproc;		/* number of live user processes	*/
 int	currpid;		/* id of currently running process	*/
 int old_pid;

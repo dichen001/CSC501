@@ -87,6 +87,7 @@ SYSCALL xmunmap(int virtpage )
     kprintf("in xmunmap(), pid=%d\n",currpid);
   dec_frm_refcnt(currpid, *store);
   bsm_tab[*store].mapping_num -= 1;
+  kprintf("in xmunmap, mapping on backing_store[%d]= %d\n",*store,bsm_tab[*store].mapping_num);
   // Finally must invalidate TLB entries since page table contents 
   // have changed. From intel vol III
   //

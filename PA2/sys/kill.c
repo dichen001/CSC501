@@ -38,7 +38,17 @@ SYSCALL kill(int pid)
 		close(dev);
 
 	//*******for PA2
-	//free_frm( pa2frid(proctab[pid].pdbr) );
+	int i;
+	for(i=0; i<16; i++)
+	{
+		if(bsm_tab[i].bs_status == BSM_MAPPED && bsm_tab[i].bs_pid == pid && bsm_tab[i].mapping_num > 0)
+		{
+			//kprintf("1 KILL: bs[%d].mapping=%d  proc=%s-(%d), vpno=%d, npages=%d\n", i, bsm_tab[i].mapping_num, proctab[pid].pname, pid, bsm_tab[i].bs_vpno, bsm_tab[i].bs_npages);
+			free_bsm(i);
+			//xmunmap(proctab[pid].bsmap[i].bs_vpno);
+			//kprintf("2 KILL: bs[%d].mapping=%d  proc=%s-(%d), vpno=%d, npages=%d\n", i, bsm_tab[i].mapping_num, proctab[pid].pname, pid, bsm_tab[i].bs_vpno, bsm_tab[i].bs_npages);
+		}
+	}
 	//*******for PA2
 	send(pptr->pnxtkin, pid);
 

@@ -185,15 +185,17 @@ void proc1_test4(int* ret) {
   }
 
   addr = (char*) MYVADDR1;
-  for (i = 0; i < 26; i++) {
+  for (i = 0; i < 1; i++) {
     *(addr + i * NBPG) = 'A' + i;
+    kprintf("1 [%x] = %c\n", addr + i * NBPG, *(addr + i * NBPG));
   }
   sleep(6);
 
   /*Shoud see what proc 2 updated*/
-  for (i = 0; i < 26; i++) {
+  for (i = 0; i < 1; i++) {
     /*expected output is abcde.....*/
     if (*(addr + i * NBPG) != 'a'+i){
+      kprintf("ERROR_2: [%x] = %c\n",addr + i * NBPG, *(addr + i * NBPG));
       *ret = TFAILED;
       break;    
     }
@@ -219,17 +221,19 @@ void proc2_test4(int *ret) {
   addr = (char*) MYVADDR2;
 
   /*Shoud see what proc 1 updated*/
-  for (i = 0; i < 26; i++) {
+  for (i = 0; i < 1; i++) {
     /*expected output is ABCDEF.....*/
     if (*(addr + i * NBPG) != 'A'+i){
+      kprintf("ERROR_1: [%x] = %c\n",addr + i * NBPG, *(addr + i * NBPG));
       *ret = TFAILED;
       break;
     }
   }
 
   /*Update the content, proc1 should see it*/
-  for (i = 0; i < 26; i++) {
+  for (i = 0; i < 1; i++) {
     *(addr + i * NBPG) = 'a' + i;
+    kprintf("2 [%x] = %c\n",addr + i * NBPG, *(addr + i * NBPG));
   }
 
   xmunmap(MYVPNO2);
@@ -386,6 +390,8 @@ void test_func7()
   int i,j,temp;
   int addrs[1200];
   int cnt = 0; 
+  STATWORD    PS;
+  disable(PS);
   //can go up to  (NFRAMES - 5 frames for null prc - 1pd for main - 1pd + 1pt frames for this proc)
   //frame for pages will be from 1032-2047
   int maxpage = (NFRAMES - (5 + 1 + 1 + 1));
@@ -393,10 +399,12 @@ void test_func7()
     if(get_bs(i,100) == SYSERR)
     {
       kprintf("get_bs call failed \n");
+      restore(PS);
       return;
     }
     if (xmmap(PAGE0+i*100, i, 100) == SYSERR) {
       kprintf("xmmap call failed\n");
+      restore(PS);
       return;
     }
     for(j=0;j < 100;j++)
@@ -412,10 +420,12 @@ void test_func7()
   for(i=0; i < maxpage; i++)
   {  
     *((int *)addrs[i]) = i + 1;
+    //kprintf("Vaddrs[%d]@%x = %d\n", i, (int *)addrs[i], *((int *)addrs[i]) );
+    //kprintf("Paddrs[%d]@%x = %d\n\n", i, zero_addr + (i + 1032) * NBPG, *((int *)(zero_addr + (i + 1032) * NBPG)));
     if (i + 1 != *((int *)(zero_addr + (i + 1032) * NBPG))) {
       kprintf("\tFAILED!\n");
-      kprintf("AA 0x%08x: %d\n", (int *)addrs[i], *((int *)addrs[i]));
-      kprintf("BB 0x%08x: %d\n", zero_addr + (i + 1032) * NBPG, *((int *)(zero_addr + (i + 1032) * NBPG)));
+      kprintf("AA i=%d 0x%08x: %d\n", i, (int *)addrs[i], *((int *)addrs[i]));
+      kprintf("BB i=%d 0x%08x: %d\n", i, zero_addr + (i + 1032) * NBPG, *((int *)(zero_addr + (i + 1032) * NBPG)));
     }
   }
   
@@ -429,8 +439,7 @@ void test_func7()
     kprintf("AA 0x%08x: %d\n", (int *)addrs[maxpage], *((int *)addrs[maxpage]));
     kprintf("BB 0x%08x: %d\n", 1032 * NBPG, *((int *)(1032 * NBPG)));
   }
-  
-  
+
   for(i=1; i <= maxpage; i++)
   {
     if ((i != 600) && (i != 800))
@@ -445,11 +454,11 @@ void test_func7()
     kprintf("AA 0x%08x: %d\n", (int *)addrs[maxpage], *((int *)addrs[maxpage]));
     kprintf("BB 0x%08x: %d\n", 1033 * NBPG, *((int *)(1033 * NBPG)));
   }
-  
   for (i=0;i<=maxpage/100;i++){
       xmunmap(PAGE0+(i*100));
-      release_bs(i);    
+      release_bs(i);
   }
+  restore(PS);
 }
 void test7(){
   int pid1;
@@ -615,9 +624,11 @@ int main() {
   test3();
   test4();
   test5();
+  //GDB = 1;
   test6();
+  GDB = 0;
   test7();
-  test8();
+  //test8();
   
   return 0;
 }
