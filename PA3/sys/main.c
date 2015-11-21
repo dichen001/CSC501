@@ -204,8 +204,9 @@ void test5 ()
         ret = releaseall (3, lck[1], lck[3], lck[2]);
         assert (ret == OK,"Test 5 FAILED\n");
 
-        for (index = 0; index < NLOCKS; index++) {
-                ldelete (lck[index]);
+        for (index = 0; index < 5; index++) {
+            kprintf("%d~~~~~~~~~~~~going to delete lock[%d]\n",index,lck[index]);
+            ldelete (lck[index]);
         }
 
         kprintf ("Test 5 PASSED!\n");

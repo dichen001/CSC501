@@ -48,8 +48,12 @@ SYSCALL ldelete(int ldes){
 		//ready(pid,RESCHNO);	
 	}
 	else
+	{
 		if(GDB)
-			kprintf("delete a free lock.(no need to do anything)\n head=%d,status=%d,state=%d,prio=%d\n",locktab[ldes].head, locktab[ldes].lstatus, locktab[ldes].lstate, locktab[ldes].lprio);
+			kprintf("delete a free lock.(no need to do anything, including resched)\n head=%d,status=%d,state=%d,prio=%d\n",locktab[ldes].head, locktab[ldes].lstatus, locktab[ldes].lstate, locktab[ldes].lprio);
+		restore(ps);
+		return OK;
+	}
 	//do something.	
 
 	if(GDB)
