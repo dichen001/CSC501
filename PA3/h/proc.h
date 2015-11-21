@@ -1,5 +1,5 @@
 /* proc.h - isbadpid */
-
+#include <lock.h>
 #ifndef _PROC_H_
 #define _PROC_H_
 
@@ -60,6 +60,8 @@ struct	pentry	{
 	int	fildes[_NFILE];		/* file - device translation	*/
 	int	ppagedev;		/* pageing dgram device		*/
 	int	pwaitret;
+
+	struct	lentry	locks[NLOCKS];
 };
 
 

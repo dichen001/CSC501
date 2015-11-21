@@ -8,6 +8,7 @@
 #include <io.h>
 #include <q.h>
 #include <stdio.h>
+#include <lock.h>
 
 /*------------------------------------------------------------------------
  * kill  --  kill a process and remove it from the system
@@ -20,6 +21,22 @@ SYSCALL kill(int pid)
 	int	dev;
 
 	disable(ps);
+
+	int i;
+	for(i=0; i<NLOCKS; i++)
+	{
+		if(proctab[pid].locks[i].lstatus == L_USED)
+		{
+			if(GDB)
+				kprintf("in kill: going to release lock[%d] form proc[%d]\n",i,pid);
+			deque(pid, i);
+			proctab[currpid].locks[i].next =-1;
+			proctab[currpid].locks[i].lstate =-1;
+			proctab[currpid].locks[i].lprio =-1;	
+		}
+	}
+
+
 	if (isbadpid(pid) || (pptr= &proctab[pid])->pstate==PRFREE) {
 		restore(ps);
 		return(SYSERR);

@@ -13,6 +13,7 @@
 #include <q.h>
 #include <io.h>
 #include <stdio.h>
+#include <lock.h>
 
 /*#define DETAIL */
 #define HOLESIZE	(600)	
@@ -27,11 +28,15 @@ extern	int	mon_init();
 extern	int	ripinit();
 LOCAL   int	sysinit();
 
+int GDB = 1;  // Global Debugger.  
+
 /* Declarations of major kernel variables */
 struct	pentry	proctab[NPROC]; /* process table			*/
 int	nextproc;		/* next process slot to use in create	*/
 struct	sentry	semaph[NSEM];	/* semaphore table			*/
 int	nextsem;		/* next sempahore slot to use in screate*/
+struct	lentry	locktab[NLOCKS];	/* lock table			*/
+int	nextlock;		/* next lock slot to use */
 struct	qent	q[NQENT];	/* q table (see queue.c)		*/
 int	nextqueue;		/* next slot in q structure to use	*/
 char	*maxaddr;		/* max memory address (set by sizmem)	*/
@@ -133,6 +138,10 @@ LOCAL int sysinit()
 	nextproc = NPROC-1;
 	nextsem = NSEM-1;
 	nextqueue = NPROC;		/* q[0..NPROC-1] are processes */
+	nextlock = NLOCKS;
+	kprintf("going to linit\n");
+	linit();	/* initialize locks */
+
 
 	/* initialize free memory list */
 	/* PC version has to pre-allocate 640K-1024K "hole" */

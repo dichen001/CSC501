@@ -12,8 +12,13 @@
  */
 INTPROC	wakeup()
 {
+       	int proc;
         while (nonempty(clockq) && firstkey(clockq) <= 0)
-                ready(getfirst(clockq),RESCHNO);
+        {
+        	proc = q[clockq].qnext;
+        	ready(getfirst(clockq),RESCHNO);
+        }     
+        //kprintf("\n\nwaking up proc[%d]: %s\n\n",proc, proctab[proc].pname);   
 	if ((slnempty = nonempty(clockq)))
 		sltop = & q[q[clockq].qnext].qkey;
 	resched();
