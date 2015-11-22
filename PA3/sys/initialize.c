@@ -28,7 +28,7 @@ extern	int	mon_init();
 extern	int	ripinit();
 LOCAL   int	sysinit();
 
-int GDB = 1;  // Global Debugger.  
+int GDB = 0;  // Global Debugger.  
 
 /* Declarations of major kernel variables */
 struct	pentry	proctab[NPROC]; /* process table			*/

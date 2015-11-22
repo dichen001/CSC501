@@ -16,7 +16,8 @@ int is_in_lock_Q_but_not_head(int pid){
 	{
 		if(proctab[pid].locks[i].lstatus == L_USED && locktab[i].head != pid)
 			{
-				kprintf("\nproc[%d] is in lock[%d]'s Q, but it's not the head, head is proc[%d]\n\n",pid,i,locktab[i].head);
+				if(GDB)
+					kprintf("\nproc[%d] is in lock[%d]'s Q, but it's not the head, head is proc[%d]\n\n",pid,i,locktab[i].head);
 				return 1;
 			}
 	}	

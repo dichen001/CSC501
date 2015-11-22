@@ -77,7 +77,8 @@ int lock (int ldes, int type, int priority){
 		locktab[ldes].lstate = type;
 		locktab[ldes].lprio = priority;
 		proctab[currpid].locks[ldes].ltime = clktime-1;
-		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
+		if(GDB)
+			kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		if(GDB)
 			kprintf("lock[%d] state: FREE to USED, type is %d, piro=%d\n",ldes,type,priority);
 		insert_lock(ldes, priority);
@@ -104,7 +105,8 @@ int lock (int ldes, int type, int priority){
 		proctab[currpid].pwaitret = OK;
 		proctab[currpid].pstate = PRWAIT;
 		proctab[currpid].locks[ldes].ltime = clktime;
-		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
+		if(GDB)
+			kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		insert_lock(ldes, priority);
 		resched();
 		// restore(ps);
@@ -116,7 +118,8 @@ int lock (int ldes, int type, int priority){
 		if(GDB)
 			kprintf("lock[%d] state: READ \nrequesting process's read_prio = %d, highest_write_prio=%d\n",ldes,priority,highest_write_prio(ldes));
 		proctab[currpid].locks[ldes].ltime = clktime;
-		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
+		if(GDB)
+			kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		insert_lock(ldes, priority);
 		if(type == READ && priority >= highest_write_prio(ldes))
 		{
@@ -211,7 +214,8 @@ LOCAL insert_lock(int ldes, int insert_prio){
 			int old_t = proctab[curr].locks[ldes].ltime;  
 			int curr_type = proctab[currpid].locks[ldes].lstate;
 			int old_type = proctab[curr].locks[ldes].lstate;
-			kprintf("c_t=%d, o_t=%d, c_tp=%d, o_tp=%d\n",curr_t,old_t,curr_type,old_type);
+			if(GDB)
+				kprintf("c_t=%d, o_t=%d, c_tp=%d, o_tp=%d\n",curr_t,old_t,curr_type,old_type);
 			// WRITE = 1, READ = 0;
 			if(curr_t - old_t <= 1 && curr_type > old_type)
 				break;
