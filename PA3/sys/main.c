@@ -219,26 +219,30 @@ void reader6 (char i, int lck, int lprio)
 {
         int     ret;
 
-        //kprintf ("  %c: to acquire lock\n", i);
+        kprintf ("proc[%d]   %c: to acquire lock\n",currpid, i);
         lock (lck, READ, lprio);
         output7[count7++]=i;
-        //kprintf ("  %c: acquired lock, sleep 3s\n", i);
+        kprintf("output[%d]=%c\n",count7-1,i);
+        kprintf ("proc[%d]   %c: acquired lock, sleep 3s\n",currpid, i);
         sleep (3);
-        //kprintf ("  %c: to release lock\n", i);
+        kprintf ("proc[%d]   %c: to release lock\n",currpid, i);
         output7[count7++]=i;
+        kprintf("output[%d]=%c\n",count7-1,i);
         releaseall (1, lck);
         
 }
 
 void writer6 (char i, int lck, int lprio)
 {
-        //kprintf ("  %c: to acquire lock\n", i);
+        kprintf ("proc[%d]   %c: to acquire lock\n",currpid, i);
         lock (lck, WRITE, lprio);
         output7[count7++]=i;
-        //kprintf ("  %c: acquired lock, sleep 3s\n", i);
+        kprintf("output[%d]=%c\n",count7-1,i);
+        kprintf ("proc[%d]   %c: acquired lock, sleep 3s\n",currpid, i);
         sleep (3);
-        //kprintf ("  %c: to release lock\n", i);
+        kprintf ("proc[%d]   %c: to release lock\n",currpid, i);
         output7[count7++]=i;
+        kprintf("output[%d]=%c\n",count7-1,i);
         releaseall (1, lck);
         
 }
@@ -261,15 +265,15 @@ void test6 ()
         rd4 = create(reader6, 2000, 20, "reader6", 3, 'D', lck, 20);
         wr1 = create(writer6, 2000, 20, "writer6", 3, 'E', lck, 25);
     
-        //kprintf("-start reader A, then sleep 1s. lock granted to reader A\n");
+        kprintf("----------start reader A, then sleep 1s. lock granted to reader A\n");
         resume(rd1);
         sleep (1);
 
-        //kprintf("-start writer C, then sleep 1s. writer waits for the lock\n");
+        kprintf("----------start writer C, then sleep 1s. writer waits for the lock\n");
         resume(wr1);
         sleep (1);
 
-        //kprintf("-start reader B, D, E. reader B is granted lock.\n");
+        kprintf("----------start reader B, D, E. reader B is granted lock.\n");
         resume (rd2);
         sleep10(1);
         resume (rd3);

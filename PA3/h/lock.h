@@ -19,7 +19,7 @@ struct	lentry	{	/* lock table entry		*/
 	int	lstatus;	/* SFREE or SUSED		*/
 	int lstate;		/* READ WRITE or DELETED */
 	int lprio;		/* the priority of a lock */
-	int	lemcnt;		/* count for this semaphore		*/
+	int	ltime;		/* the time begin waiting for the lock		*/
 	int head;		/* q index of head of list		*/
 	int next;
 };

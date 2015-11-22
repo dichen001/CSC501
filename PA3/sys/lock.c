@@ -6,6 +6,7 @@
 #include <q.h>
 #include <lock.h>
 #include <stdio.h>
+#include <sleep.h>
 
 
 /**
@@ -75,6 +76,8 @@ int lock (int ldes, int type, int priority){
 	{
 		locktab[ldes].lstate = type;
 		locktab[ldes].lprio = priority;
+		proctab[currpid].locks[ldes].ltime = clktime-1;
+		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		if(GDB)
 			kprintf("lock[%d] state: FREE to USED, type is %d, piro=%d\n",ldes,type,priority);
 		insert_lock(ldes, priority);
@@ -100,6 +103,8 @@ int lock (int ldes, int type, int priority){
 			kprintf("lock[%d] state: WRITE, going to insert and resched\n",ldes);
 		proctab[currpid].pwaitret = OK;
 		proctab[currpid].pstate = PRWAIT;
+		proctab[currpid].locks[ldes].ltime = clktime;
+		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		insert_lock(ldes, priority);
 		resched();
 		// restore(ps);
@@ -110,6 +115,8 @@ int lock (int ldes, int type, int priority){
 	{
 		if(GDB)
 			kprintf("lock[%d] state: READ \nrequesting process's read_prio = %d, highest_write_prio=%d\n",ldes,priority,highest_write_prio(ldes));
+		proctab[currpid].locks[ldes].ltime = clktime;
+		kprintf("%s@lock[%d].time=%d, TTTTTTTTTTTTT\n",proctab[currpid].pname,ldes,proctab[currpid].locks[ldes].ltime);
 		insert_lock(ldes, priority);
 		if(type == READ && priority >= highest_write_prio(ldes))
 		{
@@ -187,21 +194,34 @@ LOCAL insert_lock(int ldes, int insert_prio){
 		return;
 	}
 	int curr_prio = proctab[curr].locks[ldes].lprio;
-	if(insert_prio > curr_prio)	{
-		proctab[currpid].locks[ldes].head = currpid;
-		proctab[currpid].locks[ldes].next = locktab[ldes].head;
-		if(GDB)
-			kprintf("proc[%d]:%s .prio=%d > head_of_waiting_Q( proc[%d] )\n",currpid,proctab[currpid].pname,insert_prio,locktab[ldes].head);
-		locktab[ldes].head = currpid;
-		return;
-	}
+	// if(insert_prio > curr_prio)	{
+	// 	proctab[currpid].locks[ldes].head = currpid;
+	// 	proctab[currpid].locks[ldes].next = locktab[ldes].head;
+	// 	if(GDB)
+	// 		kprintf("proc[%d]:%s .prio=%d > head_of_waiting_Q( proc[%d] )\n",currpid,proctab[currpid].pname,insert_prio,locktab[ldes].head);
+	// 	locktab[ldes].head = currpid;
+	// 	return;
+	// }
+	pre = curr;
+	curr = proctab[curr].locks[ldes].next;
 	while(curr != -1 && insert_prio <= curr_prio)	{
+		if(insert_prio == curr_prio)
+		{
+			int curr_t = proctab[currpid].locks[ldes].ltime;
+			int old_t = proctab[curr].locks[ldes].ltime;  
+			int curr_type = proctab[currpid].locks[ldes].lstate;
+			int old_type = proctab[curr].locks[ldes].lstate;
+			kprintf("c_t=%d, o_t=%d, c_tp=%d, o_tp=%d\n",curr_t,old_t,curr_type,old_type);
+			// WRITE = 1, READ = 0;
+			if(curr_t - old_t <= 1 && curr_type > old_type)
+				break;
+		}
+		if(GDB)
+			kprintf("pre:proc[%d].prio=%d, curr: %d\n",pre, proctab[pre].locks[ldes].lprio, curr);
 		pre = curr;
 		curr = proctab[curr].locks[ldes].next;
 		if(curr != -1)
 			curr_prio = proctab[curr].locks[ldes].lprio;
-		if(GDB)
-			kprintf("pre:proc[%d].prio=%d, curr: %d\n",pre, proctab[pre].locks[ldes].lprio, curr);
 	}
 	proctab[pre].locks[ldes].next = currpid;
 	proctab[currpid].locks[ldes].next = curr;
