@@ -29,7 +29,7 @@ extern	struct	lentry	locktab[];
 extern	int	nextlock;
 extern  int GDB;  // Global Debugger.
 extern void deque(int pid, int ldes);  
-
+extern int 	highest_write_prio(int ldes);
 #define	isbadsem(s)	(s<0 || s>=NSEM)
 
 #endif

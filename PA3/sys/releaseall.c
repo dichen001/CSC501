@@ -16,6 +16,7 @@ SYSCALL releaseall(nargs,args)
 	STATWORD 	ps;    
 	unsigned long	*a;		/* points to list of args	*/
 	int ldes;
+	int return_flag = 0;
 	disable(ps);
 
 	if(GDB)
@@ -27,6 +28,13 @@ SYSCALL releaseall(nargs,args)
 		if(GDB)
 			kprintf("*a = %d\n",*a);
 		ldes = *a--;
+		if(locktab[ldes].lstate == -1)
+		{
+			if(GDB)
+				kprintf("lock[%d] hasn't been used yet. No need to release\n",ldes);
+			return_flag = 1;
+			continue;
+		}
 		if(GDB)
 			kprintf("releasing lock[%d] status=%d type=%d prio=%d)\n", ldes, locktab[ldes].lstatus, locktab[ldes].lstate, locktab[ldes].lprio);
 		//for the global lock table, they should only concern about the lcok status.
@@ -49,11 +57,14 @@ SYSCALL releaseall(nargs,args)
 		kprintf("RRRRR: proc[%d]:%s release done! going to resched\n",currpid, proctab[currpid].pname);
 	resched();
 	restore(ps);
+	if(return_flag)
+		return SYSERR;
 	return(OK);
 }
 
 void deque(int pid, int ldes){
 	int pre, curr;
+	int put_into_ready = 1;
 	curr = locktab[ldes].head;
 	if(GDB)
 		kprintf("in deque, head = proc[%d]\n",curr);
@@ -64,7 +75,7 @@ void deque(int pid, int ldes){
 		if(proctab[curr].locks[ldes].next == -1)
 		{
 			locktab[ldes].head = -1;
-			locktab[ldes].lstatus = L_FREE;
+			//locktab[ldes].lstatus = L_FREE;
 			locktab[ldes].lstate = -1;
 			locktab[ldes].lprio = -1;
 			if(GDB)
@@ -76,11 +87,13 @@ void deque(int pid, int ldes){
 			if(GDB)
 				kprintf("deque proc[%d]:%s.  proc[%d] is the NEW head in waiting Q of lock[%d].\n",pid, proctab[pid].pname, locktab[ldes].head, ldes);
 			int hpid = locktab[ldes].head;	// hpid ==>> process id with highest priority in waiting list.
+			if(locktab[ldes].lstate == READ && proctab[hpid].locks[ldes].lstate == READ)
+				put_into_ready = 0;
 			locktab[ldes].lstate =  proctab[hpid].locks[ldes].lstate;
 			locktab[ldes].lprio = proctab[hpid].locks[ldes].lprio;
 			if(GDB)
 				kprintf("now proc[%d]:%s(pstate= %d) get lock[%d]:{type=%d prio=%d} )\n",hpid, proctab[hpid].pname, proctab[hpid].pstate, ldes,locktab[ldes].lstate, locktab[ldes].lprio);
-			if(proctab[hpid].pstate == PRWAIT)
+			if(proctab[hpid].pstate == PRWAIT && put_into_ready == 1)
 			{
 				if(GDB)
 					kprintf("going to put pro[%d] into the ready Queue\n",hpid);
@@ -100,11 +113,13 @@ void deque(int pid, int ldes){
 			if(GDB)
 				kprintf("proc[%d]:%s is removed from the queue.\n",pid, proctab[pid].pname);
 			int hpid = locktab[ldes].head;	// hpid ==>> process id with highest priority in waiting list.
+			if(locktab[ldes].lstate == READ && proctab[hpid].locks[ldes].lstate == READ)
+				put_into_ready = 0;
 			locktab[ldes].lstate =  proctab[hpid].locks[ldes].lstate;
 			locktab[ldes].lprio = proctab[hpid].locks[ldes].lprio;
 			if(GDB)
 				kprintf("now proc[%d]:%s(pstate= %d) get lock[%d]:{type=%d prio=%d} )\n",hpid, proctab[hpid].pname, proctab[hpid].pstate, ldes,locktab[ldes].lstate, locktab[ldes].lprio);
-			if(proctab[hpid].pstate == PRWAIT)
+			if(proctab[hpid].pstate == PRWAIT && put_into_ready == 1)
 			{
 				if(GDB)
 					kprintf("going to put pro[%d] into the ready Queue\n",hpid);

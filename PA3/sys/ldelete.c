@@ -13,11 +13,17 @@ SYSCALL ldelete(int ldes){
 	disable(ps);
 
 	if(GDB)
-		kprintf("DDDDD: proc[%d]:%s \n",currpid, proctab[currpid].pname);
+		kprintf("DDDDD: proc[%d]:%s, trying to delete lock[%d]\n",currpid, proctab[currpid].pname);
 
 	if(GDB)
 		kprintf("deleting lock[%d] status=%d type=%d prio=%d)\n", ldes, locktab[ldes].lstatus, locktab[ldes].lstate, locktab[ldes].lprio);
-	
+	if(locktab[ldes].lstatus == L_FREE)
+	{
+		if(GDB)
+			kprintf("no need to delete lock[%d]\n",ldes);
+		restore(ps);
+		return(OK);
+	}
 	curr = locktab[ldes].head;
 	while(curr != -1)
 	{
